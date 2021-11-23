@@ -15,8 +15,9 @@ M.incsearch = function(value, opts, state, win_exe)
   end
 
   local no_match = '\n[0, 0]'
-  local wincmd = [[ echo searchpos('%s', '%s') ]]
-  local ok, pos = pcall(win_exe, wincmd, {query, search_flags})
+  local wincmd = [[ echo searchpos("%s", '%s') ]]
+  local escaped_query = vim.fn.escape(query, '"')
+  local ok, pos = pcall(win_exe, wincmd, {escaped_query, search_flags})
 
   if not ok or pos == no_match then
     return
