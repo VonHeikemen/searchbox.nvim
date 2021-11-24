@@ -119,13 +119,13 @@ require('searchbox').setup({
 
 It's very possible that I can't simulate every feature of the built-in search (`/` and  `?`).
 
-Currently `incsearch()` uses `normal n` to show to navigate between matches, this will polute your jumplist.
+Currently `incsearch()` uses `normal n` to show to navigate between matches, this will pollute your jumplist.
 
 ## Contributing
 
 Bug fixes are welcome. Everything else? Let's discuss it first.
 
-If you want to improve the ui it will be better if you contribute to [nui.nvim](https://github.com/MunifTanjim/nui.nvim).
+If you want to improve the UI it will be better if you contribute to [nui.nvim](https://github.com/MunifTanjim/nui.nvim).
 
 ## Support
 
