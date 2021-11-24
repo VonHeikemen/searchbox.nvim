@@ -49,6 +49,7 @@ M.search = function(config, search_opts, on_change)
   config.hooks.after_mount(input)
 
   input:on(event.BufLeave, function()
+    utils.clear_matches(state.bufnr)
     input:unmount()
   end)
 end
