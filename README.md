@@ -2,6 +2,8 @@
 
 Start your search from a more comfortable place, say the upper right corner?
 
+![Neovim in a terminal, displaying a wonderful searchbox](https://res.cloudinary.com/vonheikemen/image/upload/v1637716458/other/Captura_de_pantalla_de_2021-11-23_21-09-14.png)
+
 > This plugin is very much a work in progress.
 
 ## Getting Started
