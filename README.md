@@ -151,7 +151,8 @@ require('searchbox').setup({
 
 ## Roadmap
 
-* Add search and replace component.
+* Figure out how to handle confirmation on replace component.
+* Restrict search to a range of line.
 
 ## Caveats
 
