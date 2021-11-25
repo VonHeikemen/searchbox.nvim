@@ -1,5 +1,6 @@
 local M = {}
 local utils = require('searchbox.utils')
+local Input = require('nui.input')
 
 local clear_highlight_namespace = function(state)
   utils.clear_matches(state.bufnr)
@@ -8,7 +9,7 @@ end
 M.incsearch = {
   buf_leave = clear_highlight_namespace,
   on_close = clear_highlight_namespace,
-  on_submit = function(opts, state)
+  on_submit = function(value, opts, state)
     clear_highlight_namespace(state)
     vim.cmd('normal n')
   end,
@@ -70,7 +71,7 @@ end
 M.match_all = {
   buf_leave = clear_match_id,
   on_close = clear_match_id,
-  on_submit = function(opts, state)
+  on_submit = function(value, opts, state)
     if opts.clear_matches then
       clear_match_id(state)
     end
@@ -97,7 +98,7 @@ local noop = function() end
 M.simple = {
   buf_leave = noop,
   on_close = noop,
-  on_submit = function(opts, state)
+  on_submit = function(value, opts, state)
     if opts.reverse then
       vim.cmd('normal N')
     else
@@ -105,6 +106,45 @@ M.simple = {
     end
   end,
   on_change = noop
+}
+
+M.replace = {
+  buf_leave = clear_match_id,
+  on_close = clear_match_id,
+  on_change = M.match_all.on_change,
+  on_submit = function(value, search_opts, state, popup_opts)
+    local border = {
+      border = {
+        text = {
+          top = ' With ',
+          bottom = ' 2/2 ',
+          bottom_align = 'right'
+        }
+      }
+    }
+
+    local replace_popup = utils.merge(popup_opts, border)
+
+    local input = Input(replace_popup, {
+      prompt = ' ',
+      default_value = '',
+      on_close = function()
+        clear_match_id(state)
+        vim.defer_fn(function()
+          search_opts.default_value = value
+          require('searchbox').replace(search_opts)
+        end, 3)
+      end,
+      on_submit = function(value)
+        clear_match_id(state)
+        local cmd = [[ %%s//%s/g ]]
+        vim.cmd(cmd:format(value))
+      end
+    })
+
+    input:mount()
+    require('searchbox.inputs').default_mappings(input, state.winid)
+  end,
 }
 
 return M

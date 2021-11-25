@@ -85,5 +85,32 @@ M.simple = function(config)
   input.search(user_opts, search_opts, search_type.simple)
 end
 
+M.replace = function(config)
+  if not user_opts then
+    M.setup({})
+  end
+
+  local search_defaults = {
+    exact = false,
+    title = false,
+    prompt = ' '
+  }
+
+  local search_opts = merge(search_defaults, config)
+
+  local border_opts = {
+    border = {
+      text = {
+        top = ' Replace ',
+        bottom = ' 1/2 ',
+        bottom_align = 'right'
+      }
+    }
+  }
+
+  opts = utils.merge(user_opts, {popup = border_opts})
+  input.search(opts, search_opts, search_type.replace)
+end
+
 return M
 

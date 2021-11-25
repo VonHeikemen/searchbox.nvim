@@ -38,13 +38,15 @@ use {
 
 ### Types of search
 
-There are three kinds of search:
+There are four kinds of search:
 
 * `incsearch`: Highlights the nearest match of your query as you type.
 
 * `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disapear after the input closes, add the `clear_matches` argument (more on this later).
 
 * `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
+
+* `replace`: Starts a multi-step input to search and replace. First input allows you to enter a pattern (search term). Second input will ask for the string that will replace the previous pattern.
 
 ## Usage
 
@@ -75,6 +77,7 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `exact`: Look for an exact match.
 * `title`: Set title for the popup window.
 * `prompt`: Set input prompt.
+* `default_value`: Set initial value for the input.
 
 The *match_all* search also accepts:
 
@@ -98,6 +101,12 @@ Move to the nearest exact match without any fuss.
 
 ```vim
 <cmd>lua require("searchbox").simple({exact = true})<CR>
+```
+
+Start a search and replace.
+
+```vim
+<cmd>lua require("searchbox").replace()<CR>
 ```
 
 ## Configuration
