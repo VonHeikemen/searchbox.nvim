@@ -10,6 +10,7 @@ local search_defaults = {
   reverse = false,
   exact = false,
   title = false,
+  prompt = ' '
 }
 
 local defaults = {

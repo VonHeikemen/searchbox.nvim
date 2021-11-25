@@ -24,7 +24,7 @@ M.search = function(config, search_opts, handlers)
   end
 
   local input = Input(popup_opts, {
-    prompt = ' ',
+    prompt = search_opts.prompt,
     default_value = '',
     on_close = function()
       vim.cmd("normal `'")

@@ -74,6 +74,7 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `reverse`: Look for matches above the cursor.
 * `exact`: Look for an exact match.
 * `title`: Set title for the popup window.
+* `prompt`: Set input prompt.
 
 The *match_all* search also accepts:
 
