@@ -36,9 +36,19 @@ use {
 }
 ```
 
+### Types of search
+
+There are three kinds of search:
+
+* `incsearch`: Highlights the nearest match of your query as you type.
+
+* `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disapear after the input closes, add the `clear_matches` argument (more on this later).
+
+* `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
+
 ## Usage
 
-Right now there is only type of search: `incsearch`. Call it from a keybinging and do your thing.
+Each type of search is a lua function you can bind to a key. Example.
 
 * **Lua Bindings**
 
@@ -64,15 +74,33 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `reverse`: Look for matches above the cursor.
 * `exact`: Look for an exact match.
 
-So if you wanted to make a reverse search like the default `?`, you'll do this:
+The `match_all` search also accepts:
 
-```lua
+* `clear_matches`: Get rid of the highlight after the search is done.
+
+Here are some examples:
+
+Make a reverse search, like the default `?`:
+
+```vim
 <cmd>lua require("searchbox").incsearch({reverse = true})<CR>
+```
+
+Make the highlight of `match_all` go away after submit.
+
+```vim
+<cmd>lua require("searchbox").match_all({clear_matches = true})<CR>
+```
+
+Move to the nearest exact match without any fuss.
+
+```vim
+<cmd>lua require("searchbox").simple({exact = true})<CR>
 ```
 
 ## Configuration
 
-If you want to change anything from the `ui` or add a "hook" you can use `.setup()`.
+If you want to change anything in the `UI` or add a "hook" you can use `.setup()`.
 
 This are the defaults.
 
@@ -113,7 +141,6 @@ require('searchbox').setup({
 ## Roadmap
 
 * Add search and replace component.
-* Add other types of search.
 
 ## Caveats
 
