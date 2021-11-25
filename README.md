@@ -74,7 +74,7 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `reverse`: Look for matches above the cursor.
 * `exact`: Look for an exact match.
 
-The `match_all` search also accepts:
+The *match_all* search also accepts:
 
 * `clear_matches`: Get rid of the highlight after the search is done.
 
