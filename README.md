@@ -4,6 +4,10 @@ Start your search from a more comfortable place, say the upper right corner?
 
 ![Neovim in a terminal, displaying a wonderful searchbox](https://res.cloudinary.com/vonheikemen/image/upload/v1637716458/other/Captura_de_pantalla_de_2021-11-23_21-09-14.png)
 
+Here's demo of search and replace component.
+
+[Search and replace with a multi-step input](https://user-images.githubusercontent.com/20980671/143463371-2505204c-0545-4972-83b2-879cfb5c6348.mp4)
+
 > This plugin is very much a work in progress.
 
 ## Getting Started
