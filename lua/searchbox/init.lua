@@ -43,6 +43,16 @@ M.setup = function(config)
   user_opts = merge(defaults, config)
 end
 
+M.clear_matches = function()
+  utils.clear_matches(vim.fn.bufnr('%'))
+
+  local hl = search_type.match_all.highlight_id
+  if hl then
+    local ok = pcall(vim.fn.matchdelete, hl, vim.fn.win_getid())
+    if ok then search_type.match_all.highlight_id = nil end
+  end
+end
+
 M.incsearch = function(config)
   local search_opts = merge(search_defaults, config)
   if not user_opts then
@@ -50,6 +60,26 @@ M.incsearch = function(config)
   end
 
   input.search(user_opts, search_opts, search_type.incsearch)
+end
+
+M.match_all = function(config)
+  local search_opts = merge(search_defaults, config)
+
+  if not user_opts then
+    M.setup({})
+  end
+
+  input.search(user_opts, search_opts, search_type.match_all)
+end
+
+M.simple = function(config)
+  local search_opts = merge(search_defaults, config)
+
+  if not user_opts then
+    M.setup({})
+  end
+
+  input.search(user_opts, search_opts, search_type.simple)
 end
 
 return M

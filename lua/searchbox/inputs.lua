@@ -5,7 +5,7 @@ local event = require('nui.utils.autocmd').event
 
 local utils = require('searchbox.utils')
 
-M.search = function(config, search_opts, on_change)
+M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
 
   local state = {
@@ -20,19 +20,17 @@ M.search = function(config, search_opts, on_change)
     prompt = ' ',
     default_value = '',
     on_close = function()
-      utils.clear_matches(state.bufnr)
       vim.cmd("normal `'")
+      handlers.on_close(state)
     end,
     on_submit = function(value)
-      utils.clear_matches(state.bufnr)
       local query = utils.build_search(value, search_opts)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
-      vim.cmd('normal n')
+      handlers.on_submit(search_opts, state)
     end,
     on_change = function(value)
-      utils.clear_matches(state.bufnr)
-      on_change(value, search_opts, state, utils.win_exe(state.winid))
+      handlers.on_change(value, search_opts, state, utils.win_exe(state.winid))
     end,
   })
 
@@ -49,7 +47,7 @@ M.search = function(config, search_opts, on_change)
   config.hooks.after_mount(input)
 
   input:on(event.BufLeave, function()
-    utils.clear_matches(state.bufnr)
+    handlers.buf_leave(state)
     input:unmount()
   end)
 end
