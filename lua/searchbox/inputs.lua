@@ -16,7 +16,14 @@ M.search = function(config, search_opts, handlers)
     line_prev = -1,
   }
 
-  local input = Input(config.popup, {
+  local title = utils.set_title(search_opts, config)
+  local popup_opts = config.popup
+
+  if title ~= '' then
+    popup_opts = utils.merge(config.popup, {border = {text = {top = title}}})
+  end
+
+  local input = Input(popup_opts, {
     prompt = ' ',
     default_value = '',
     on_close = function()

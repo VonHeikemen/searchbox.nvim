@@ -8,7 +8,8 @@ local merge = utils.merge
 
 local search_defaults = {
   reverse = false,
-  exact = false
+  exact = false,
+  title = false,
 }
 
 local defaults = {
@@ -55,6 +56,7 @@ end
 
 M.incsearch = function(config)
   local search_opts = merge(search_defaults, config)
+
   if not user_opts then
     M.setup({})
   end

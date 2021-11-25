@@ -50,5 +50,34 @@ M.build_search = function(value, opts)
   end
 end
 
+M.set_title = function(search_opts, user_opts)
+  local ok, title = pcall(function()
+    return user_opts.popup.border.text.top
+  end)
+
+  if title == nil then
+    return ''
+  end
+
+  if search_opts.title then
+    return search_opts.title
+  end
+
+  if title ~= ' Search ' then
+    return title
+  end
+
+  title = vim.trim(title)
+  if search_opts.reverse then
+    title = 'Reverse Search'
+  end
+
+  if search_opts.exact then
+    title = title .. ' (exact)'
+  end
+
+  return string.format(' %s ', title)
+end
+
 return M
 
