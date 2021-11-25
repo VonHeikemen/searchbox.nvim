@@ -109,6 +109,16 @@ Start a search and replace.
 <cmd>lua require("searchbox").replace()<CR>
 ```
 
+### Default keymaps
+
+Inside the input you can use the following keymaps:
+
+* `Enter`: Submit input.
+* `Esc`: Closes input.
+* `Ctrl + c`: Close input.
+* `Ctrl + y`: Scroll up.
+* `Ctrl + e`: Scroll down.
+
 ## Configuration
 
 If you want to change anything in the `UI` or add a "hook" you can use `.setup()`.
