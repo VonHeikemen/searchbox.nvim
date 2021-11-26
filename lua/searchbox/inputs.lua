@@ -57,16 +57,35 @@ end
 
 M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
+  local prompt = input.input_props.prompt:len()
 
   map('<C-c>', input.input_props.on_close)
   map('<Esc>', input.input_props.on_close)
+  map('<BS>', function() M.prompt_backspace(prompt) end)
 
-  map('<C-y>', function()
-    vim.fn.win_execute(winid, 'exe "normal \\<C-y>"')
-  end)
-  map('<C-e>', function()
-    vim.fn.win_execute(winid, 'exe "normal \\<C-e>"')
-  end)
+  local win_exe = function(cmd)
+    vim.fn.win_execute(winid, string.format('exe "normal %s"', cmd))
+  end
+
+  map('<C-y>', function() win_exe('\\<C-y>') end)
+  map('<C-e>', function() win_exe('\\<C-e>') end)
+
+  map('<C-f>', function() win_exe('\\<C-f>') end)
+  map('<C-b>', function() win_exe('\\<C-b>') end)
+end
+
+-- Default backspace has inconsistent behavior, have to make our own (for now)
+-- Taken from here:
+-- https://github.com/neovim/neovim/issues/14116#issuecomment-976069244
+M.prompt_backspace = function(prompt)
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local line = cursor[1]
+  local col = cursor[2]
+
+  if col ~= prompt then
+    vim.api.nvim_buf_set_text(0, line - 1, col - 1, line - 1, col, {''})
+    vim.api.nvim_win_set_cursor(0, {line, col - 1})
+  end
 end
 
 return M

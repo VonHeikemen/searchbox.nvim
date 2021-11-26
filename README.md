@@ -122,6 +122,8 @@ Inside the input you can use the following keymaps:
 * `Ctrl + c`: Close input.
 * `Ctrl + y`: Scroll up.
 * `Ctrl + e`: Scroll down.
+* `Ctrl + b`: Scroll page up.
+* `Ctrl + f`: Scroll page down.
 
 ## Configuration
 
