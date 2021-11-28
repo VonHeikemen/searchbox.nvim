@@ -14,6 +14,7 @@ M.search = function(config, search_opts, handlers)
     bufnr = vim.fn.bufnr(),
     line = cursor[2],
     line_prev = -1,
+    start_cursor = {cursor[2], cursor[3]}
   }
 
   local title = utils.set_title(search_opts, config)
@@ -27,7 +28,7 @@ M.search = function(config, search_opts, handlers)
     prompt = search_opts.prompt,
     default_value = search_opts.default_value or '',
     on_close = function()
-      vim.cmd("normal `'")
+      vim.api.nvim_win_set_cursor(state.winid, state.start_cursor)
       handlers.on_close(state)
     end,
     on_submit = function(value)
@@ -37,11 +38,10 @@ M.search = function(config, search_opts, handlers)
       handlers.on_submit(value, search_opts, state, popup_opts)
     end,
     on_change = function(value)
-      handlers.on_change(value, search_opts, state, utils.win_exe(state.winid))
+      handlers.on_change(value, search_opts, state)
     end,
   })
 
-  vim.cmd("normal m'")
   config.hooks.before_mount(input)
 
   input:mount()

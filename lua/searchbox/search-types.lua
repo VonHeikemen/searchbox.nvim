@@ -13,33 +13,36 @@ M.incsearch = {
     clear_highlight_namespace(state)
     vim.cmd('normal n')
   end,
-  on_change = function(value, opts, state, win_exe)
+  on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
-
-    opts = opts or {}
-    local search_flags = 'cn'
-    local query = utils.build_search(value, opts)
-
-    if opts.reverse then
-      search_flags = 'bcn'
-    end
 
     if value == '' then
       return
     end
 
-    local no_match = '\n[0, 0]'
-    local wincmd = [[ echo searchpos("%s", '%s') ]]
-    local escaped_query = vim.fn.escape(query, '"')
-    local ok, pos = pcall(win_exe, wincmd, {escaped_query, search_flags})
+    opts = opts or {}
+    local search_flags = 'c'
+    local query = utils.build_search(value, opts)
 
-    if not ok or pos == no_match then
+    if opts.reverse then
+      search_flags = 'bc'
+    end
+
+    local searchpos = function()
+      local pos = state.start_cursor
+      vim.fn.setpos('.', {state.bufnr, pos[1], pos[2]})
+      return vim.fn.searchpos(query, search_flags)
+    end
+
+    local pos = vim.api.nvim_buf_call(state.bufnr, searchpos)
+    local no_match = pos[1] == 0 and pos[2] == 0
+
+    if no_match then
       return
     end
 
-    pos = vim.split(pos, ',')
-    state.line = tonumber(pos[1]:sub(3))
-    local col = tonumber(pos[2]:sub(1, pos[2]:len() - 1))
+    state.line = pos[1]
+    local col = pos[2]
     local off = col + value:len()
 
     vim.api.nvim_buf_add_highlight(
@@ -52,12 +55,7 @@ M.incsearch = {
     )
 
     if state.line ~= state.line_prev then
-      vim.fn.setreg('/', query)
-      if opts.reverse then
-        win_exe('normal N')
-      else
-        win_exe('normal n')
-      end
+      vim.api.nvim_win_set_cursor(state.winid, {state.line, col - 1})
       state.line_prev = state.line
     end
 end
@@ -82,7 +80,7 @@ M.match_all = {
       vim.cmd('normal n')
     end
   end,
-  on_change = function(value, opts, state, win_exe)
+  on_change = function(value, opts, state)
     clear_match_id(state)
     if value == '' then return end
 
