@@ -174,8 +174,6 @@ require('searchbox').setup({
 
 It's very possible that I can't simulate every feature of the built-in search (`/` and  `?`).
 
-Currently `incsearch()` uses `normal n` to navigate between matches, this will pollute your jumplist.
-
 ## Contributing
 
 Bug fixes are welcome. Everything else? Let's discuss it first.
