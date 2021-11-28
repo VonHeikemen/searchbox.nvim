@@ -7,13 +7,6 @@ M.clear_matches = function(bufnr)
   vim.api.nvim_buf_clear_namespace(bufnr, M.hl_namespace, 0, -1)
 end
 
-M.win_exe = function(winid)
-  return function(cmd, args)
-    args = args or {}
-    return vim.fn.win_execute(winid, cmd:format(unpack(args)))
-  end
-end
-
 M.feedkeys = function(keys)
   vim.api.nvim_feedkeys(
     vim.api.nvim_replace_termcodes(keys, true, true, true),

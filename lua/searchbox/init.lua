@@ -47,12 +47,6 @@ end
 
 M.clear_matches = function()
   utils.clear_matches(vim.fn.bufnr('%'))
-
-  local hl = search_type.match_all.highlight_id
-  if hl then
-    local ok = pcall(vim.fn.matchdelete, hl, vim.fn.win_getid())
-    if ok then search_type.match_all.highlight_id = nil end
-  end
 end
 
 M.incsearch = function(config)
