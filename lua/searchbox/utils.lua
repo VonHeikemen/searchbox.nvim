@@ -1,4 +1,5 @@
 local M = {}
+local format = string.format
 
 M.hl_name = 'SearchBoxMatch'
 M.hl_namespace = vim.api.nvim_create_namespace(M.hl_name)
@@ -36,11 +37,17 @@ M.create_map = function(input, force)
 end
 
 M.build_search = function(value, opts)
+  local query = value
+
   if opts.exact then
-    return ('\\<%s\\>'):format(value)
-  else
-    return value
+    query = format('\\<%s\\>', query)
   end
+
+  if opts.visual_mode then
+    query = format('\\%%V%s', query)
+  end
+
+  return query
 end
 
 M.set_title = function(search_opts, user_opts)
@@ -69,7 +76,7 @@ M.set_title = function(search_opts, user_opts)
     title = title .. ' (exact)'
   end
 
-  return string.format(' %s ', title)
+  return format(' %s ', title)
 end
 
 return M

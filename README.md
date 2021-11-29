@@ -73,6 +73,27 @@ vim.api.nvim_set_keymap(
 nnoremap <leader>s <cmd>lua require('searchbox').incsearch()<CR>
 ```
 
+### Visual mode
+
+In visual mode you'll need to add `<Esc>` at the beginning of the mapping and use `visual_mode = true` in the arguments.
+
+* lua
+
+```lua
+vim.api.nvim_set_keymap(
+  'v',
+  '<leader>s',
+  '<Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>',
+  {noremap = true}
+)
+```
+
+* vimscript
+
+```vim
+vnoremap <leader>s <Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>
+```
+
 ### Search function arguments
 
 You can tweak the behaviour of the search if you pass a table with any of these keys:
@@ -82,6 +103,7 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `title`: Set title for the popup window.
 * `prompt`: Set input prompt.
 * `default_value`: Set initial value for the input.
+* `visual_mode`: Search only in the recently selected text.
 
 The *match_all* search also accepts:
 
@@ -111,6 +133,12 @@ Start a search and replace.
 
 ```vim
 <cmd>lua require("searchbox").replace()<CR>
+```
+
+Replace an exact match in the selected text. (Needs to be mapped in visual mode)
+
+```vim
+<Esc><cmd>lua require("searchbox").replace({exact = true, visual_mode = true})<CR>
 ```
 
 ### Default keymaps
@@ -163,12 +191,11 @@ require('searchbox').setup({
 
 - `hooks` must be functions. They will be executed during the "lifecycle" of the input.
 
-`before_mount` and `after_mount` recieve the instance of the input, so you can do anything with it.
+`before_mount` and `after_mount` receive the instance of the input, so you can do anything with it.
 
 ## Roadmap
 
 * Figure out how to handle confirmation on replace component.
-* Restrict search to a range of line.
 
 ## Caveats
 

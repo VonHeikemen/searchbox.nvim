@@ -9,6 +9,7 @@ local merge = utils.merge
 local search_defaults = {
   reverse = false,
   exact = false,
+  visual_mode = false,
   title = false,
   prompt = ' '
 }

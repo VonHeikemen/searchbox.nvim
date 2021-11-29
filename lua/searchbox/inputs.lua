@@ -14,8 +14,16 @@ M.search = function(config, search_opts, handlers)
     bufnr = vim.fn.bufnr(),
     line = cursor[2],
     line_prev = -1,
-    start_cursor = {cursor[2], cursor[3]}
+    start_cursor = {cursor[2], cursor[3]},
+    range = {start = {0, 0}, ends = {0, 0}}
   }
+
+  if search_opts.visual_mode then
+    state.range = {
+      start = {vim.fn.line("'<"), vim.fn.col("'<")},
+      ends = {vim.fn.line("'>"), vim.fn.col("'>")},
+    }
+  end
 
   local title = utils.set_title(search_opts, config)
   local popup_opts = config.popup

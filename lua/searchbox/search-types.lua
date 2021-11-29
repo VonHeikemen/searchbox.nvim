@@ -28,11 +28,14 @@ M.incsearch = {
       search_flags = 'bc'
     end
 
-    local searchpos = function()
-      local pos = state.start_cursor
-      vim.fn.setpos('.', {state.bufnr, pos[1], pos[2]})
+    local start_pos = opts.visual_mode
+      and state.range.start
+      or state.start_cursor
 
-      local pos = vim.fn.searchpos(query, search_flags)
+    local searchpos = function()
+      vim.fn.setpos('.', {state.bufnr, start_pos[1], start_pos[2]})
+
+      local pos = vim.fn.searchpos(query, search_flags, state.range.ends[1])
       local offset = vim.fn.searchpos(query, 'cne')
       pos[3] = offset[2]
 
@@ -90,9 +93,11 @@ M.match_all = {
     local query = utils.build_search(value, opts)
 
     local searchpos = function()
-      local pos = vim.fn.searchpos(query)
-      local offset = vim.fn.searchpos(query, 'cne')
+      local stopline = state.range.ends[1]
+      local pos = vim.fn.searchpos(query, '', stopline)
+      local offset = vim.fn.searchpos(query, 'cne', stopline)
       pos[3] = offset[2]
+
       return pos
     end
 
@@ -106,7 +111,8 @@ M.match_all = {
     end
 
     vim.api.nvim_buf_call(state.bufnr, function()
-      vim.fn.setpos('.', {0, 0, 0})
+      local start = state.range.start
+      vim.fn.setpos('.', {0, start[1], start[2]})
     end)
 
     for i = 1, results.total, 1 do
@@ -115,6 +121,10 @@ M.match_all = {
       local line = pos[1]
       local col = pos[2]
       local off = pos[3]
+
+      if line == 0 and col == 0 then
+        break
+      end
 
       vim.api.nvim_buf_add_highlight(
         state.bufnr,
@@ -126,7 +136,10 @@ M.match_all = {
       )
     end
 
-    local pos = state.start_cursor
+    local pos = opts.visual_mode
+      and state.range.start
+      or state.start_cursor
+
     vim.api.nvim_buf_call(state.bufnr, function()
       vim.fn.setpos('.', {0, pos[1], pos[2]})
     end)
@@ -176,8 +189,10 @@ M.replace = {
       end,
       on_submit = function(value)
         clear_matches(state)
-        local cmd = [[ %%s//%s/g ]]
-        vim.cmd(cmd:format(value))
+        local range = search_opts.visual_mode and "'<,'>s" or '%s'
+
+        local cmd = [[ %s//%s/g ]]
+        vim.cmd(cmd:format(range, value))
       end
     })
 
