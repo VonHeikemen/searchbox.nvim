@@ -238,10 +238,6 @@ require('searchbox').setup({
 
 `before_mount` and `after_mount` receive the instance of the input, so you can do anything with it.
 
-## Roadmap
-
-* Add help page.
-
 ## Caveats
 
 It's very possible that I can't simulate every feature of the built-in search (`/` and  `?`).
