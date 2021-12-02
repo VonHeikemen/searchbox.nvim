@@ -66,8 +66,7 @@ M.incsearch = {
       vim.api.nvim_win_set_cursor(state.winid, {state.line, col - 1})
       state.line_prev = state.line
     end
-end
-
+  end
 }
 
 M.match_all = {
@@ -124,6 +123,12 @@ M.match_all = {
 
       if line == 0 and col == 0 then
         break
+      end
+
+      if i == 1 then
+        state.first_match = pos
+      else
+        state.last_match = pos
       end
 
       vim.api.nvim_buf_add_highlight(
@@ -189,10 +194,29 @@ M.replace = {
       end,
       on_submit = function(value)
         clear_matches(state)
-        local range = search_opts.visual_mode and "'<,'>s" or '%s'
+        local flags = 'g'
 
-        local cmd = [[ %s//%s/g ]]
-        vim.cmd(cmd:format(range, value))
+        if search_opts.confirm == 'native' then
+          flags = 'gc'
+        end
+
+        local screen = vim.opt.lines:get()
+        local enough_space = screen >= 14
+        local range = search_opts.visual_mode and "'<,'>s" or '%s'
+        local cmd = [[ %s//%s/%s ]]
+
+        local replace_cmd = cmd:format(range, value, flags)
+
+        if search_opts.confirm == 'menu' and enough_space then
+          return M.confirm(value, state, replace_cmd)
+        end
+
+        -- change to native confirm if there isn't enough space
+        if search_opts.confirm == 'menu' then
+          replace_cmd = cmd:format(range, value, 'gc')
+        end
+
+        vim.cmd(replace_cmd)
       end
     })
 
@@ -200,6 +224,100 @@ M.replace = {
     require('searchbox.inputs').default_mappings(input, state.winid)
   end,
 }
+
+M.confirm = function(value, state, cmd)
+  local fn = {}
+  local menu = require('searchbox.replace-menu')
+  local next_match = function()
+    local pos = vim.fn.searchpos(vim.fn.getreg('/'), 'cw')
+    local off = vim.fn.searchpos(vim.fn.getreg('/'), 'cwe')
+    pos[3] = off[2]
+
+    return pos
+  end
+
+  local replace = function(pos)
+    vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] - 1, pos[1] - 1, pos[3], {value})
+  end
+
+  local highlight = function(pos)
+    vim.api.nvim_buf_add_highlight(
+      state.bufnr,
+      utils.hl_namespace,
+      utils.hl_name,
+      pos[1] - 1,
+      pos[2] - 1,
+      pos[3]
+    )
+  end
+
+  local cursor_pos = function(pos)
+    vim.api.nvim_win_set_cursor(state.winid, {pos[1], pos[2] - 1})
+  end
+
+  fn.execute = function(item, pos)
+    clear_matches(state)
+
+    local is_last = state.last_match[1] == pos[1]
+      and state.last_match[2] == pos[2]
+
+    local stop = true
+    if item.action == 'replace' then
+      replace(pos)
+      stop = false
+    end
+
+    if item.action == 'replace_all' then
+      vim.cmd(cmd)
+      stop = true
+    end
+
+    if item.action == 'next' then
+      -- move so next_match can do the right thing.
+      cursor_pos({pos[1], pos[3]})
+      stop = false
+    end
+
+    if item.action == 'quit' then
+      stop = true
+    end
+
+    if item.action == 'last' then
+      replace(pos)
+      stop = true
+    end
+
+    if stop or is_last then
+      return
+    end
+
+    local match = next_match()
+    if match[1] == 0 then
+      return
+    end
+
+    fn.confirm(match)
+  end
+
+  fn.confirm = function(pos)
+    clear_matches(state)
+    highlight(pos)
+    cursor_pos({pos[1], pos[2] - 1})
+    menu.confirm_action({
+      on_close = function()
+        clear_matches(state)
+      end,
+      on_submit = function(item)
+        fn.execute(item, pos)
+      end
+    })
+  end
+
+  -- Move cursor just before the first match.
+  -- Make sure we don't skip anything.
+  cursor_pos(state.first_match)
+  fn.confirm(next_match())
+end
 
 return M
 

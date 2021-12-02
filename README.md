@@ -105,9 +105,13 @@ You can tweak the behaviour of the search if you pass a table with any of these 
 * `default_value`: Set initial value for the input.
 * `visual_mode`: Search only in the recently selected text.
 
-The *match_all* search also accepts:
+*match_all* search also accepts:
 
 * `clear_matches`: Get rid of the highlight after the search is done.
+
+*replace* search accepts:
+
+* `confirm`: Ask the user to choose an action on each match. There are three possible values: `off`, `native` and `menu`. `off` disables the feature. `native` uses neovim's built-in confirm method. `menu` displays a list of possible actions below the match. Is worth mentioning `menu` will only show up if neovim's window is big enough, confirm type will fallback to "native" if it isn't.
 
 Here are some examples:
 
@@ -141,6 +145,20 @@ Replace an exact match in the selected text. (Needs to be mapped in visual mode)
 <Esc><cmd>lua require("searchbox").replace({exact = true, visual_mode = true})<CR>
 ```
 
+Confirm every match of search and replace
+
+- Normal mode:
+
+```vim
+<cmd>lua require("searchbox").replace({confirm = 'menu'})<CR>
+```
+
+- Visual mode:
+
+```vim
+<Esc><cmd>lua require("searchbox").replace({confirm = 'menu', visual_mode = true})<CR>
+```
+
 ### Default keymaps
 
 Inside the input you can use the following keymaps:
@@ -152,6 +170,29 @@ Inside the input you can use the following keymaps:
 * `Ctrl + e`: Scroll down.
 * `Ctrl + b`: Scroll page up.
 * `Ctrl + f`: Scroll page down.
+
+In the confirm menu (of search and replace):
+
+* `y`: Confirm replace.
+* `n`: Move to next match.
+* `a`: Replace all matches.
+* `q`: Quit menu.
+* `l`: Replace match then quit. Think of it as "the last replace".
+* `Enter`: Accept option.
+* `Esc`: Quit menu.
+* `ctrl + c`: Quit menu.
+* `Tab`: Next option.
+* `shift + Tab`: Previous option.
+* `Down arrow`: Next option.
+* `Up arrow`: Previous option.
+
+The "native" confirm method:
+
+* `y`: Confirm replace.
+* `n`: Move to next match.
+* `a`: Replace all matches.
+* `q`: Quit menu.
+* `l`: Replace match then quit.
 
 ## Configuration
 
@@ -181,8 +222,12 @@ require('searchbox').setup({
     },
   },
   hooks = {
-    before_mount = function() end,
-    after_mount = function() end
+    before_mount = function(input)
+      -- code
+    end,
+    after_mount = function(input)
+      -- code
+    end
   }
 })
 ```
@@ -195,7 +240,7 @@ require('searchbox').setup({
 
 ## Roadmap
 
-* Figure out how to handle confirmation on replace component.
+* Add help page.
 
 ## Caveats
 

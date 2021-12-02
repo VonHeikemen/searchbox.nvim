@@ -88,10 +88,17 @@ M.replace = function(config)
   local search_defaults = {
     exact = false,
     title = false,
-    prompt = ' '
+    visual_mode = false,
+    prompt = ' ',
+    confirm = 'off'
   }
 
   local search_opts = merge(search_defaults, config)
+
+  if not utils.validate_confirm_mode(search_opts.confirm) then
+    error('(SearchBox replace) Invalid value for confirm argument')
+    return
+  end
 
   local border_opts = {
     border = {

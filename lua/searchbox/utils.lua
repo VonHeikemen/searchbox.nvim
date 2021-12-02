@@ -79,5 +79,9 @@ M.set_title = function(search_opts, user_opts)
   return format(' %s ', title)
 end
 
+M.validate_confirm_mode = function(value)
+  return value == 'menu' or value == 'native' or value == 'off'
+end
+
 return M
 
