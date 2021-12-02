@@ -154,9 +154,10 @@ The "native" confirm method:
     * `l`: Replace match then quit.
 
 ==============================================================================
-Configuration                                      *searchbox-general-settings*
+Configuration                                     *searchbox-general-settings*
 
-If you want to change anything in the `UI` or add a "hook" you can use `.setup()`.
+If you want to change anything in the `UI` or add a "hook"
+you can use `.setup()`.
 
 This are the defaults.
 
@@ -209,8 +210,8 @@ popup.position: ~
                                                         *searchbox.popup.size*
 popup.size: ~
     Controls the size of the popup. If `size` can be a `number` or
-    `percentage string`, can also be a table with `width` and `height`. Do note
-    input can only have `1` line.
+    `percentage string`, can also be a table with `width` and `height`.
+    Do note input can only have `1` line.
 
                                                       *searchbox.popup.border*
 popup.border: ~
