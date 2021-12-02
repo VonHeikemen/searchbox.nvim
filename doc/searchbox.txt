@@ -77,6 +77,7 @@ use `visual_mode = true` in the arguments.
 >
   vnoremap <leader>s <Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>
 <
+
 ==============================================================================
 Search Options                                      *searchbox-search-options*
 
@@ -287,6 +288,7 @@ Confirm every match of search and replace
 >
   <Esc><cmd>lua require("searchbox").replace({confirm = 'menu', visual_mode = true})<CR>
 <
+
 ==============================================================================
 Caveats                                                    *searchbox-caveats*
 
