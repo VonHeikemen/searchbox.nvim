@@ -8,8 +8,6 @@ Here's demo of search and replace component, and also *match_all* search.
 
 [Search and replace with a multi-step input](https://user-images.githubusercontent.com/20980671/143466541-1374ab97-0601-44a5-ab85-dab1ed63ab41.mp4)
 
-> This plugin is very much a work in progress.
-
 ## Getting Started
 
 Make sure you have [Neovim v0.5.1](https://github.com/neovim/neovim/releases/tag/v0.5.1) or greater.
