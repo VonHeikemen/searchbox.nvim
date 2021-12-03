@@ -2,6 +2,10 @@ local M = {}
 local utils = require('searchbox.utils')
 local Input = require('nui.input')
 
+local buf_call = function(state, fn)
+  return vim.api.nvim_buf_call(state.bufnr, fn)
+end
+
 local clear_matches = function(state)
   utils.clear_matches(state.bufnr)
 end
@@ -85,8 +89,18 @@ M.match_all = {
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
-
     if value == '' then return end
+
+    -- figure out 'maxcount' for searchcount
+    state.max_match = state.max_match or buf_call(state, function()
+      local size = vim.fn.getfsize(vim.fn.expand('%'))
+
+      if size < 0 then
+        size = vim.o.lines * 10000
+      end
+
+      return size
+    end)
 
     opts = opts or {}
     local query = utils.build_search(value, opts)
@@ -101,34 +115,35 @@ M.match_all = {
     end
 
     vim.fn.setreg('/', query)
-    local results = vim.api.nvim_buf_call(state.bufnr, function()
-      return vim.fn.searchcount()
+    local results = buf_call(state, function()
+      return vim.fn.searchcount({maxcount = state.max_match})
     end)
 
     if results.total == 0 then
       return
     end
 
-    vim.api.nvim_buf_call(state.bufnr, function()
+    buf_call(state, function()
       local start = state.range.start
       vim.fn.setpos('.', {0, start[1], start[2]})
     end)
 
+    state.total_matches = results.total
+
     for i = 1, results.total, 1 do
-      local pos = vim.api.nvim_buf_call(state.bufnr, searchpos)
+      local pos = buf_call(state, searchpos)
 
       local line = pos[1]
       local col = pos[2]
       local off = pos[3]
 
+      -- check if there is a match
       if line == 0 and col == 0 then
         break
       end
 
       if i == 1 then
         state.first_match = pos
-      else
-        state.last_match = pos
       end
 
       vim.api.nvim_buf_add_highlight(
@@ -145,7 +160,7 @@ M.match_all = {
       and state.range.start
       or state.start_cursor
 
-    vim.api.nvim_buf_call(state.bufnr, function()
+    buf_call(state, function()
       vim.fn.setpos('.', {0, pos[1], pos[2]})
     end)
   end
@@ -208,7 +223,7 @@ M.replace = {
         local replace_cmd = cmd:format(range, value, flags)
 
         if search_opts.confirm == 'menu' and enough_space then
-          return M.confirm(value, state, replace_cmd)
+          return M.confirm(value, state)
         end
 
         -- change to native confirm if there isn't enough space
@@ -225,8 +240,9 @@ M.replace = {
   end,
 }
 
-M.confirm = function(value, state, cmd)
+M.confirm = function(value, state)
   local fn = {}
+  local match_index = 0
   local menu = require('searchbox.replace-menu')
   local next_match = function()
     local pos = vim.fn.searchpos(vim.fn.getreg('/'), 'cw')
@@ -256,20 +272,23 @@ M.confirm = function(value, state, cmd)
   end
 
   fn.execute = function(item, pos)
+    match_index = match_index + 1
     clear_matches(state)
 
-    local is_last = state.last_match[1] == pos[1]
-      and state.last_match[2] == pos[2]
+    local is_last = match_index == state.total_matches
 
     local stop = true
+    local replace_next = false
+
     if item.action == 'replace' then
       replace(pos)
       stop = false
     end
 
     if item.action == 'replace_all' then
-      vim.cmd(cmd)
-      stop = true
+      replace(pos)
+      replace_next = true
+      stop = false
     end
 
     if item.action == 'next' then
@@ -296,7 +315,11 @@ M.confirm = function(value, state, cmd)
       return
     end
 
-    fn.confirm(match)
+    if replace_next then
+      fn.execute({action = 'replace_all'}, match)
+    else
+      fn.confirm(match)
+    end
   end
 
   fn.confirm = function(pos)
