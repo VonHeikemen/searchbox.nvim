@@ -1,6 +1,7 @@
 local M = {}
 local utils = require('searchbox.utils')
 local Input = require('nui.input')
+local fmt = string.format
 
 local buf_call = function(state, fn)
   return vim.api.nvim_buf_call(state.bufnr, fn)
@@ -10,12 +11,21 @@ local clear_matches = function(state)
   utils.clear_matches(state.bufnr)
 end
 
+local print_err = function(err)
+  local idx = err:find(':E')
+  local msg = err:sub(idx + 1)
+  vim.cmd(fmt("echohl ErrorMsg | echom \"%s\"", vim.fn.escape(msg, '"')))
+end
+
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = clear_matches,
   on_submit = function(value, opts, state)
     clear_matches(state)
-    vim.cmd('normal n')
+    local ok, err = pcall(vim.cmd, 'normal n')
+    if not ok then
+      print_err(err)
+    end
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
@@ -81,10 +91,14 @@ M.match_all = {
       clear_matches(state)
     end
 
+    local cmd = 'normal n'
     if opts.reverse then
-      vim.cmd('normal N')
-    else
-      vim.cmd('normal n')
+      cmd = 'normal N'
+    end
+
+    local ok, err = pcall(vim.cmd, cmd)
+    if not ok then
+      print_err(err)
     end
   end,
   on_change = function(value, opts, state)
@@ -119,6 +133,8 @@ M.match_all = {
       return vim.fn.searchcount({maxcount = state.max_match})
     end)
 
+    state.total_matches = results.total
+
     if results.total == 0 then
       return
     end
@@ -127,8 +143,6 @@ M.match_all = {
       local start = state.range.start
       vim.fn.setpos('.', {0, start[1], start[2]})
     end)
-
-    state.total_matches = results.total
 
     for i = 1, results.total, 1 do
       local pos = buf_call(state, searchpos)
@@ -171,10 +185,14 @@ M.simple = {
   buf_leave = noop,
   on_close = noop,
   on_submit = function(value, opts, state)
+    local cmd = 'normal! n'
     if opts.reverse then
-      vim.cmd('normal N')
-    else
-      vim.cmd('normal n')
+      cmd = 'normal! N'
+    end
+
+    local ok, err = pcall(vim.cmd, cmd)
+    if not ok then
+      print_err(err)
     end
   end,
   on_change = noop
@@ -185,6 +203,12 @@ M.replace = {
   on_close = clear_matches,
   on_change = M.match_all.on_change,
   on_submit = function(value, search_opts, state, popup_opts)
+    if state.total_matches == 0 then
+      local _, err = pcall(vim.cmd, '//')
+      print_err(err)
+      return
+    end
+
     local border = {
       border = {
         text = {
@@ -313,7 +337,7 @@ M.confirm = function(value, state)
     end
 
     local match = next_match()
-    if match[1] == 0 then
+    if match[1] == 0 and match[2] == 0 then
       return
     end
 
