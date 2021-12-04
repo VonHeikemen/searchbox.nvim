@@ -268,7 +268,9 @@ M.confirm = function(value, state)
   end
 
   local cursor_pos = function(pos)
-    vim.api.nvim_win_set_cursor(state.winid, {pos[1], pos[2] - 1})
+    local line = pos[1]
+    local col = pos[2] == 0 and 0 or pos[2] - 1
+    vim.api.nvim_win_set_cursor(state.winid, {line, col})
   end
 
   fn.execute = function(item, pos)
