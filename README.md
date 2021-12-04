@@ -75,6 +75,8 @@ nnoremap <leader>s <cmd>lua require('searchbox').incsearch()<CR>
 
 In visual mode you'll need to add `<Esc>` at the beginning of the mapping and use `visual_mode = true` in the arguments.
 
+In this mode the search is limited to the range set by the selected text. Similar to what the `substitute` command does in this case `:'<,'>s/this/that/g`.
+
 * lua
 
 ```lua
@@ -137,7 +139,20 @@ Start a search and replace.
 <cmd>lua require("searchbox").replace()<CR>
 ```
 
-Replace an exact match in the selected text. (Needs to be mapped in visual mode)
+Use the word under the cursor to begin search and replace. (Normal mode).
+
+```vim
+<cmd>lua require('searchbox').replace({default_value = vim.fn.expand('<cword>')})<CR>
+```
+
+Use the selected text as a search term (needs visual mode):
+
+```vim
+y<cmd>lua require('searchbox').replace({default_value = vim.fn.getreg('"')})<CR>
+```
+> Due to limitations on the input, It can't handle newlines well or even the escape sequence \n. So whatever you have selected, must be one line.
+
+Search and replace within the range of the selected text, and look for an exact match. (Needs to be mapped in visual mode)
 
 ```vim
 <Esc><cmd>lua require("searchbox").replace({exact = true, visual_mode = true})<CR>
