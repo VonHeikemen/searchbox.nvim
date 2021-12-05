@@ -362,9 +362,9 @@ M.confirm = function(value, state)
     })
   end
 
-  -- Move cursor just before the first match.
-  -- Make sure we don't skip anything.
-  cursor_pos(state.first_match)
+  -- I used to have a good reason to start from the first match.
+  -- It looks like this is not necessary anymore.
+  -- cursor_pos(state.first_match)
   fn.confirm(next_match())
 end
 
