@@ -61,6 +61,9 @@ Visual mode                                    *searchbox-visual-mode-support*
 In visual mode you'll need to add `<Esc>` at the beginning of the mapping and
 use `visual_mode = true` in the arguments.
 
+The search will be limited to the range set by the selected text.  Similar to
+what the `substitute` command does in this case `:'<,'>s/this/that/g`
+
 * lua
 
 >
@@ -115,8 +118,8 @@ For `replace`
 
 confirm: ~
     Ask the user to choose an action on each match. There are three possible
-    values: `off`, `native` and `menu`. `off` disables the feature.  `native` uses
-    neovim's built-in confirm method. `menu` displays a list of possible
+    values: `off`, `native` and `menu`. `off` disables the feature.  `native`
+    uses neovim's built-in confirm method. `menu` displays a list of possible
     actions below the match. Is worth mentioning `menu` will only show up
     if neovim's window is big enough, confirm type will fallback to "native"
     if it isn't.
@@ -269,7 +272,20 @@ Start a search and replace.
   <cmd>lua require("searchbox").replace()<CR>
 <
 
-Replace an exact match in the selected text. (Visual mode)
+Use the word under the cursor to begin search and replace. (Normal mode).
+
+>
+  <cmd>lua require('searchbox').replace({default_value = vim.fn.expand('<cword>')})<CR>
+<
+
+Use the selected text as a search term. (Visual mode):
+
+>
+  y<cmd>lua require('searchbox').replace({default_value = vim.fn.getreg('"')})<CR>
+<
+
+Search and replace within the range of the selected text, and look for an
+exact match. (Visual mode)
 
 >
   <Esc><cmd>lua require("searchbox").replace({exact = true, visual_mode = true})<CR>
