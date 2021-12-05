@@ -278,6 +278,10 @@ M.confirm = function(value, state)
 
   local replace = function(pos)
     vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] - 1, pos[1] - 1, pos[3], {value})
+
+    -- move cursor to the new offset column
+    -- so next_match doesn't get stuck
+    vim.api.nvim_win_set_cursor(state.winid, {pos[1], (pos[2] + value:len()) - 1})
   end
 
   local highlight = function(pos)
