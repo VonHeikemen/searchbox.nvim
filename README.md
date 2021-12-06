@@ -147,10 +147,11 @@ Use the word under the cursor to begin search and replace. (Normal mode).
 
 Use the selected text as a search term (needs visual mode):
 
+> Due to limitations on the input, it can't handle newlines well or even the escape sequence \n. So whatever you have selected, must be one line.
+
 ```vim
 y<cmd>lua require('searchbox').replace({default_value = vim.fn.getreg('"')})<CR>
 ```
-> Due to limitations on the input, It can't handle newlines well or even the escape sequence \n. So whatever you have selected, must be one line.
 
 Search and replace within the range of the selected text, and look for an exact match. (Needs to be mapped in visual mode)
 
