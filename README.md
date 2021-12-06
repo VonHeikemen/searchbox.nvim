@@ -81,7 +81,7 @@ In this mode the search is limited to the range set by the selected text. Simila
 
 ```lua
 vim.api.nvim_set_keymap(
-  'v',
+  'x',
   '<leader>s',
   '<Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>',
   {noremap = true}
@@ -91,7 +91,7 @@ vim.api.nvim_set_keymap(
 * vimscript
 
 ```vim
-vnoremap <leader>s <Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>
+xnoremap <leader>s <Esc><cmd>lua require("searchbox").incsearch({visual_mode = true})<CR>
 ```
 
 ### Search function arguments
