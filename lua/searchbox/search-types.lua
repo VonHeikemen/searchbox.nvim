@@ -36,7 +36,7 @@ M.incsearch = {
 
     opts = opts or {}
     local search_flags = 'c'
-    local query = utils.build_search(value, opts)
+    local query = utils.build_search(value, opts, state)
 
     if opts.reverse then
       search_flags = 'bc'
@@ -117,7 +117,7 @@ M.match_all = {
     end)
 
     opts = opts or {}
-    local query = utils.build_search(value, opts)
+    local query = utils.build_search(value, opts, state)
 
     local searchpos = function()
       local stopline = state.range.ends[1]

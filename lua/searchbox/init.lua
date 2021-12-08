@@ -11,7 +11,8 @@ local search_defaults = {
   exact = false,
   visual_mode = false,
   title = false,
-  prompt = ' '
+  prompt = ' ',
+  range = {-1, -1}
 }
 
 local defaults = {
@@ -90,7 +91,8 @@ M.replace = function(config)
     title = false,
     visual_mode = false,
     prompt = ' ',
-    confirm = 'off'
+    confirm = 'off',
+    range = {-1, -1}
   }
 
   local search_opts = merge(search_defaults, config)

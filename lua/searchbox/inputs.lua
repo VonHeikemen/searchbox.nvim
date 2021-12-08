@@ -14,6 +14,7 @@ M.search = function(config, search_opts, handlers)
     bufnr = vim.fn.bufnr(),
     line = cursor[2],
     line_prev = -1,
+    use_range = false,
     start_cursor = {cursor[2], cursor[3]},
     range = {start = {0, 0}, ends = {0, 0}}
   }
@@ -22,6 +23,18 @@ M.search = function(config, search_opts, handlers)
     state.range = {
       start = {vim.fn.line("'<"), vim.fn.col("'<")},
       ends = {vim.fn.line("'>"), vim.fn.col("'>")},
+    }
+  elseif search_opts.range[1] > 0 and search_opts.range[2] > 0 then
+    state.use_range = true
+    state.range = {
+      start = {
+        search_opts.range[1],
+        1
+      },
+      ends = {
+        search_opts.range[2],
+        vim.fn.col({search_opts.range[2], '$'})
+      },
     }
   end
 
@@ -40,7 +53,7 @@ M.search = function(config, search_opts, handlers)
       handlers.on_close(state)
     end,
     on_submit = function(value)
-      local query = utils.build_search(value, search_opts)
+      local query = utils.build_search(value, search_opts, state)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
       handlers.on_submit(value, search_opts, state, popup_opts)

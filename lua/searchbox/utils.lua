@@ -36,7 +36,7 @@ M.create_map = function(input, force)
   end
 end
 
-M.build_search = function(value, opts)
+M.build_search = function(value, opts, state)
   local query = value
 
   if opts.exact then
@@ -45,6 +45,13 @@ M.build_search = function(value, opts)
 
   if opts.visual_mode then
     query = format('\\%%V%s', query)
+  elseif state.use_range then
+    query = format(
+      '\\%%>%sl\\%%<%sl%s',
+      state.range.start[1] - 1,
+      state.range.ends[1] + 1,
+      value
+    )
   end
 
   return query
