@@ -208,7 +208,7 @@ Use the selected text as a search term. (Visual mode):
 > Due to limitations on the input, it can't handle newlines well or even the escape sequence \n. So whatever you have selected, must be one line.
 
 ```vim
-y:SearchBoxReplace <C-r>"<CR>
+y:SearchBoxReplace -- <C-r>"<CR>
 ```
 
 Search and replace within the range of the selected text, and look for an exact match. (Visual mode)

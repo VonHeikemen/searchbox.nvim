@@ -353,7 +353,7 @@ Due to limitations on the input, it can't handle newlines well or even the
 escape sequence `\n`. So whatever you have selected, must be one line.
 
 >
-  y:SearchBoxReplace <C-r>"<CR>
+  y:SearchBoxReplace -- <C-r>"<CR>
 <
 
 Search and replace within the range of the selected text, and look for an
