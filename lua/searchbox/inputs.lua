@@ -80,19 +80,26 @@ M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
   local prompt = input.input_props.prompt:len()
 
-  map('<C-c>', input.input_props.on_close)
-  map('<Esc>', input.input_props.on_close)
-  map('<BS>', function() M.prompt_backspace(prompt) end)
+  local bufmap = function(lhs, rhs)
+    vim.api.nvim_buf_set_keymap(input.bufnr, 'i', lhs, rhs, {noremap = true})
+  end
 
   local win_exe = function(cmd)
     vim.fn.win_execute(winid, string.format('exe "normal %s"', cmd))
   end
+
+  map('<C-c>', input.input_props.on_close)
+  map('<Esc>', input.input_props.on_close)
+  map('<BS>', function() M.prompt_backspace(prompt) end)
+
 
   map('<C-y>', function() win_exe('\\<C-y>') end)
   map('<C-e>', function() win_exe('\\<C-e>') end)
 
   map('<C-f>', function() win_exe('\\<C-f>') end)
   map('<C-b>', function() win_exe('\\<C-b>') end)
+
+  bufmap('<M-.>', '<C-r>=getreg("/")<CR>')
 end
 
 -- Default backspace has inconsistent behavior, have to make our own (for now)
