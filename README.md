@@ -135,13 +135,21 @@ When using the command api the arguments are a space separated list of key/value
 :SearchBoxMatchAll title=Match exact=true visual_mode=true<CR>
 ```
 
-Because whitespace acts like a separator between the arguments you need to escape it appropriately if you want to use it as a value. If you want to use `Match All` as a title you'll do this.
+Because whitespace acts like a separator between the arguments if you want to use it as a value you need to escape it, or use a quoted argument. If you want to use `Match All` as a title, these are your options.
+
+```vim
+:SearchBoxMatchAll title="Match All"<CR>
+" or
+:SearchBoxMatchAll title='Match All'<CR>
+```
 
 ```vim
 :SearchBoxMatchAll title=Match\ All<CR>
 ```
 
 > Note that escaping is specially funny inside a lua string, so you might need to use `\\`.
+
+Is worth mention that argument parsing is done manually inside the plugin. Complex escape sequences are not taken into account. Just `\"` and `\'` to avoid conflict in quoted arguments, and `\ ` to escape whitespace in a string argument without quotes.
 
 Not being able to use whitespace freely makes it difficult to use `default_value` with this api, that's why it gets a special treatment. There is no `default_value` argument, instead everything that follows the `--` argument is considered part of the search term.
 
