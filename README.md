@@ -202,7 +202,7 @@ Start a search and replace.
 Use the word under the cursor to begin search and replace. (Normal mode).
 
 ```vim
-:SearchBoxReplace <C-r>=expand('<cword>')<CR><CR>
+:SearchBoxReplace -- <C-r>=expand('<cword>')<CR><CR>
 ```
 
 Look for the exact word under the cursor.
