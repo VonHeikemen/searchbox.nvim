@@ -76,11 +76,13 @@ local parse_input = function(input)
     return opts
   end
 
-  local first_word = input:match('^([a-z_]+)')
+  local first_word = input:match('^([a-z_]+=)')
 
   -- If input doesn't begin with any known argument
   -- don't bother, just return input as `default_value`
-  if to_opts[first_word] == nil then
+  if first_word == nil or
+    to_opts[first_word:sub(1, #first_word - 1)] == nil
+  then
     opts.default_value = input
     return opts
   end
