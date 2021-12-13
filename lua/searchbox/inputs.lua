@@ -66,6 +66,7 @@ M.search = function(config, search_opts, handlers)
   config.hooks.before_mount(input)
 
   input:mount()
+
   M.default_mappings(input, state.winid)
 
   config.hooks.after_mount(input)
@@ -78,7 +79,14 @@ end
 
 M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
-  local prompt = input.input_props.prompt:len()
+  local prompt = input.input_props.prompt
+  local prompt_length = 0
+
+  if type(prompt.length) == 'function' then
+    prompt_length = prompt:length()
+  elseif type(prompt.len) == 'function' then
+    prompt_length = prompt:len()
+  end
 
   local bufmap = function(lhs, rhs)
     vim.api.nvim_buf_set_keymap(input.bufnr, 'i', lhs, rhs, {noremap = true})
@@ -90,7 +98,7 @@ M.default_mappings = function(input, winid)
 
   map('<C-c>', input.input_props.on_close)
   map('<Esc>', input.input_props.on_close)
-  map('<BS>', function() M.prompt_backspace(prompt) end)
+  map('<BS>', function() M.prompt_backspace(prompt_length) end)
 
 
   map('<C-y>', function() win_exe('\\<C-y>') end)
