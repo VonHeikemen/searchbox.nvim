@@ -49,7 +49,11 @@ M.incsearch = {
     local searchpos = function()
       vim.fn.setpos('.', {state.bufnr, start_pos[1], start_pos[2]})
 
-      local pos = vim.fn.searchpos(query, search_flags, state.range.ends[1])
+      local ok, pos = pcall(vim.fn.searchpos, query, search_flags, state.range.ends[1])
+      if not ok then
+        return {0, 0, 0}
+      end
+
       local offset = vim.fn.searchpos(query, 'cne')
       pos[3] = offset[2]
 
@@ -121,7 +125,11 @@ M.match_all = {
 
     local searchpos = function()
       local stopline = state.range.ends[1]
-      local pos = vim.fn.searchpos(query, '', stopline)
+      local ok, pos = pcall(vim.fn.searchpos, query, '', stopline)
+      if not ok then
+        return {0, 0, 0}
+      end
+
       local offset = vim.fn.searchpos(query, 'cne', stopline)
       pos[3] = offset[2]
 
