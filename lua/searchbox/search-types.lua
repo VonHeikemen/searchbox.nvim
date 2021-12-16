@@ -21,11 +21,11 @@ M.incsearch = {
   buf_leave = clear_matches,
   on_close = clear_matches,
   on_submit = function(value, opts, state)
-    clear_matches(state)
     local ok, err = pcall(vim.cmd, 'normal n')
     if not ok then
       print_err(err)
     end
+    clear_matches(state)
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
@@ -91,10 +91,6 @@ M.match_all = {
   buf_leave = clear_matches,
   on_close = clear_matches,
   on_submit = function(value, opts, state)
-    if opts.clear_matches then
-      clear_matches(state)
-    end
-
     local cmd = 'normal n'
     if opts.reverse then
       cmd = 'normal N'
@@ -103,6 +99,10 @@ M.match_all = {
     local ok, err = pcall(vim.cmd, cmd)
     if not ok then
       print_err(err)
+    end
+
+    if opts.clear_matches then
+      clear_matches(state)
     end
   end,
   on_change = function(value, opts, state)

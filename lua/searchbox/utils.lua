@@ -6,6 +6,7 @@ M.hl_namespace = vim.api.nvim_create_namespace(M.hl_name)
 
 M.clear_matches = function(bufnr)
   vim.api.nvim_buf_clear_namespace(bufnr, M.hl_namespace, 0, -1)
+  vim.cmd('nohlsearch')
 end
 
 M.feedkeys = function(keys)
