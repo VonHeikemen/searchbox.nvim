@@ -308,6 +308,9 @@ require('searchbox').setup({
     end,
     after_mount = function(input)
       -- code
+    end,
+    on_done = function(value, search_type)
+      -- code
     end
   }
 })
@@ -317,7 +320,9 @@ require('searchbox').setup({
 
 - `hooks` must be functions. They will be executed during the "lifecycle" of the input.
 
-`before_mount` and `after_mount` receive the instance of the input, so you can do anything with it.
+*before_mount* and *after_mount* receive the instance of the input, so you can do anything with it.
+
+*on_done* it's executed after the search is finished. In the case of a successful search it gets the value submitted and the type of search as arguments. When doing a search and replace, it gets executed after the last substitution takes place. In case the search was cancelled, the first argument is `nil` and the second argument is the type of search.
 
 ## Caveats
 

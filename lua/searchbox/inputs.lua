@@ -50,12 +50,16 @@ M.search = function(config, search_opts, handlers)
     default_value = search_opts.default_value or '',
     on_close = function()
       vim.api.nvim_win_set_cursor(state.winid, state.start_cursor)
+
+      state.on_done = config.hooks.on_done
       handlers.on_close(state)
     end,
     on_submit = function(value)
       local query = utils.build_search(value, search_opts, state)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
+
+      state.on_done = config.hooks.on_done
       handlers.on_submit(value, search_opts, state, popup_opts)
     end,
     on_change = function(value)

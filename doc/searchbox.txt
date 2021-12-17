@@ -274,6 +274,9 @@ This are the defaults.
       end,
       after_mount = function(input)
         -- code
+      end,
+      on_done = function(value, search_type)
+        -- code
       end
     }
   })
@@ -326,6 +329,14 @@ hooks.before_mount: ~
 hooks.after_mount: ~
     Gets executed after the input is drawn on the screen. Receives the
     instance of the input as a parameter.
+
+                                                     *searchbox.hooks.on_done*
+hooks.on_done: ~
+    It's executed after the search is finished. In the case of a successful
+    search it gets the value submitted and the type of search as arguments.
+    When doing a search and replace, it gets executed after the last
+    substitution takes place. In case the search was cancelled, the first
+    argument is `nil` and the second argument is the type of search.
 
 ==============================================================================
 Examples                                                  *searchbox-examples*

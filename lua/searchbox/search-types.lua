@@ -19,13 +19,17 @@ end
 
 M.incsearch = {
   buf_leave = clear_matches,
-  on_close = clear_matches,
+  on_close = function(state)
+    clear_matches(state)
+    state.on_done(nil, 'incsearch')
+  end,
   on_submit = function(value, opts, state)
     local ok, err = pcall(vim.cmd, 'normal n')
     if not ok then
       print_err(err)
     end
     clear_matches(state)
+    state.on_done(value, 'incsearch')
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
@@ -89,7 +93,10 @@ M.incsearch = {
 
 M.match_all = {
   buf_leave = clear_matches,
-  on_close = clear_matches,
+  on_close = function(state)
+    clear_matches(state)
+    state.on_done(nil, 'match_all')
+  end,
   on_submit = function(value, opts, state)
     local cmd = 'normal n'
     if opts.reverse then
@@ -104,6 +111,8 @@ M.match_all = {
     if opts.clear_matches then
       clear_matches(state)
     end
+
+    state.on_done(value, 'match_all')
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
@@ -191,7 +200,9 @@ M.match_all = {
 local noop = function() end
 M.simple = {
   buf_leave = noop,
-  on_close = noop,
+  on_close = function(state)
+    state.on_done(nil, 'simple')
+  end,
   on_submit = function(value, opts, state)
     local cmd = 'normal! n'
     if opts.reverse then
@@ -202,18 +213,24 @@ M.simple = {
     if not ok then
       print_err(err)
     end
+
+    state.on_done(value, 'simple')
   end,
   on_change = noop
 }
 
 M.replace = {
   buf_leave = clear_matches,
-  on_close = clear_matches,
+  on_close = function(state)
+    clear_matches(state)
+    state.on_done(nil, 'replace')
+  end,
   on_change = M.match_all.on_change,
   on_submit = function(value, search_opts, state, popup_opts)
     if state.total_matches == 0 then
       local _, err = pcall(vim.cmd, '//')
       print_err(err)
+      state.on_done(nil, 'replace')
       return
     end
 
@@ -264,6 +281,7 @@ M.replace = {
         end
 
         vim.cmd(replace_cmd)
+        state.on_done(value, 'replace')
       end
     })
 
@@ -345,6 +363,7 @@ M.confirm = function(value, state)
     end
 
     if stop or is_last then
+      state.on_done(value, 'replace')
       return
     end
 
@@ -363,7 +382,10 @@ M.confirm = function(value, state)
   fn.confirm = function(pos)
     clear_matches(state)
     highlight(pos)
+
+    -- Make the confirm menu appear below the match
     cursor_pos({pos[1], pos[2] - 1})
+
     menu.confirm_action({
       on_close = function()
         clear_matches(state)

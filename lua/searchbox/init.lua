@@ -38,6 +38,7 @@ local defaults = {
   hooks = {
     before_mount = function() end,
     after_mount = function() end,
+    on_done = function() end,
   }
 }
 
