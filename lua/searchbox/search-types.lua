@@ -14,7 +14,7 @@ end
 local print_err = function(err)
   local idx = err:find(':E')
   local msg = err:sub(idx + 1)
-  vim.cmd(fmt("echohl ErrorMsg | echom \"%s\"", vim.fn.escape(msg, '"')))
+  vim.notify(msg, vim.log.levels.ERROR)
 end
 
 M.incsearch = {
