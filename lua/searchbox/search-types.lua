@@ -52,10 +52,13 @@ M.incsearch = {
     state.on_done(nil, 'incsearch')
   end,
   on_submit = function(value, opts, state)
-    local ok, err = pcall(vim.cmd, 'normal! n')
-    if not ok then
+    local res = vim.fn.search(vim.fn.getreg('/'), 'c')
+
+    if res == 0 then
+      local _, err = pcall(vim.cmd, '//')
       print_err(err)
     end
+
     clear_matches(state)
     state.on_done(value, 'incsearch')
   end,
