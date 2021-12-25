@@ -17,6 +17,34 @@ local print_err = function(err)
   vim.notify(msg, vim.log.levels.ERROR)
 end
 
+local highlight_text = function(bufnr, pos)
+  local h = function(line, col, offset)
+    vim.api.nvim_buf_add_highlight(
+      bufnr,
+      utils.hl_namespace,
+      utils.hl_name,
+      line - 1,
+      col - 1,
+      offset
+    )
+  end
+
+  if pos.one_line then
+    h(pos.line, pos.col, pos.end_col)
+  else
+    -- highlight first line
+    h(pos.line, pos.col, -1)
+
+    -- highlight last line
+    h(pos.end_line, 1, pos.end_col)
+
+    -- do the rest
+    for curr_line=pos.line + 1, pos.end_line - 1, 1 do
+      h(curr_line, 1, -1)
+    end
+  end
+end
+
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = function(state)
@@ -24,7 +52,7 @@ M.incsearch = {
     state.on_done(nil, 'incsearch')
   end,
   on_submit = function(value, opts, state)
-    local ok, err = pcall(vim.cmd, 'normal n')
+    local ok, err = pcall(vim.cmd, 'normal! n')
     if not ok then
       print_err(err)
     end
@@ -55,37 +83,32 @@ M.incsearch = {
 
       local ok, pos = pcall(vim.fn.searchpos, query, search_flags, state.range.ends[1])
       if not ok then
-        return {0, 0, 0}
+        return {line = 0, col = 0}
       end
 
       local offset = vim.fn.searchpos(query, 'cne')
-      pos[3] = offset[2]
 
-      return pos
+      return {
+        line = pos[1],
+        col = pos[2],
+        end_line = offset[1],
+        end_col = offset[2],
+        one_line = offset[1] == pos[1],
+      }
     end
 
     local pos = vim.api.nvim_buf_call(state.bufnr, searchpos)
-    local no_match = pos[1] == 0 and pos[2] == 0
+    local no_match = pos.line == 0 and pos.col == 0
 
     if no_match then
       return
     end
 
-    state.line = pos[1]
-    local col = pos[2]
-    local off = pos[3]
-
-    vim.api.nvim_buf_add_highlight(
-      state.bufnr,
-      utils.hl_namespace,
-      utils.hl_name,
-      state.line - 1,
-      col - 1,
-      off
-    )
+    state.line = pos.line
+    highlight_text(state.bufnr, pos)
 
     if state.line ~= state.line_prev then
-      vim.api.nvim_win_set_cursor(state.winid, {state.line, col - 1})
+      vim.api.nvim_win_set_cursor(state.winid, {state.line, pos.col - 1})
       state.line_prev = state.line
     end
   end
@@ -136,13 +159,18 @@ M.match_all = {
       local stopline = state.range.ends[1]
       local ok, pos = pcall(vim.fn.searchpos, query, '', stopline)
       if not ok then
-        return {0, 0, 0}
+        return {line = 0, col = 0}
       end
 
       local offset = vim.fn.searchpos(query, 'cne', stopline)
-      pos[3] = offset[2]
 
-      return pos
+      return {
+        line = pos[1],
+        col = pos[2],
+        end_line = offset[1],
+        end_col = offset[2],
+        one_line = offset[1] == pos[1],
+      }
     end
 
     vim.fn.setreg('/', query)
@@ -164,12 +192,8 @@ M.match_all = {
     for i = 1, results.total, 1 do
       local pos = buf_call(state, searchpos)
 
-      local line = pos[1]
-      local col = pos[2]
-      local off = pos[3]
-
       -- check if there is a match
-      if line == 0 and col == 0 then
+      if pos.line == 0 and pos.col == 0 then
         break
       end
 
@@ -177,14 +201,7 @@ M.match_all = {
         state.first_match = pos
       end
 
-      vim.api.nvim_buf_add_highlight(
-        state.bufnr,
-        utils.hl_namespace,
-        utils.hl_name,
-        line - 1,
-        col - 1,
-        off
-      )
+      highlight_text(state.bufnr, pos)
     end
 
     local pos = opts.visual_mode
@@ -297,33 +314,34 @@ M.confirm = function(value, state)
   local next_match = function()
     local pos = vim.fn.searchpos(vim.fn.getreg('/'), 'cw')
     local off = vim.fn.searchpos(vim.fn.getreg('/'), 'cwe')
-    pos[3] = off[2]
 
-    return pos
+    return {
+      line = pos[1],
+      col = pos[2],
+      end_line = off[1],
+      end_col = off[2],
+      one_line = pos[1] == off[1]
+    }
   end
 
   local replace = function(pos)
-    vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] - 1, pos[1] - 1, pos[3], {value})
+    vim.api.nvim_buf_set_text(
+      0,
+      pos.line - 1,
+      pos.col - 1,
+      pos.end_line - 1,
+      pos.end_col,
+      {value}
+    )
 
     -- move cursor to the new offset column
     -- so next_match doesn't get stuck
-    vim.api.nvim_win_set_cursor(state.winid, {pos[1], (pos[2] + value:len()) - 1})
-  end
-
-  local highlight = function(pos)
-    vim.api.nvim_buf_add_highlight(
-      state.bufnr,
-      utils.hl_namespace,
-      utils.hl_name,
-      pos[1] - 1,
-      pos[2] - 1,
-      pos[3]
-    )
+    vim.api.nvim_win_set_cursor(state.winid, {pos.line, (pos.col + value:len()) - 1})
   end
 
   local cursor_pos = function(pos)
     local line = pos[1]
-    local col = pos[2] == 0 and 0 or pos[2] - 1
+    local col = pos[2] <= 0 and 0 or pos[2] - 1
     vim.api.nvim_win_set_cursor(state.winid, {line, col})
   end
 
@@ -349,7 +367,7 @@ M.confirm = function(value, state)
 
     if item.action == 'next' then
       -- move so next_match can do the right thing.
-      cursor_pos({pos[1], pos[3]})
+      cursor_pos({pos.end_line, pos.end_col})
       stop = false
     end
 
@@ -368,7 +386,7 @@ M.confirm = function(value, state)
     end
 
     local match = next_match()
-    if match[1] == 0 and match[2] == 0 then
+    if match.line == 0 and match.col == 0 then
       return
     end
 
@@ -381,10 +399,14 @@ M.confirm = function(value, state)
 
   fn.confirm = function(pos)
     clear_matches(state)
-    highlight(pos)
+    highlight_text(state.bufnr, pos)
 
     -- Make the confirm menu appear below the match
-    cursor_pos({pos[1], pos[2] - 1})
+    if pos.one_line then
+      cursor_pos({pos.line, pos.col - 1})
+    else
+      cursor_pos({pos.end_line, pos.end_col - 15})
+    end
 
     menu.confirm_action({
       on_close = function()
@@ -396,9 +418,6 @@ M.confirm = function(value, state)
     })
   end
 
-  -- I used to have a good reason to start from the first match.
-  -- It looks like this is not necessary anymore.
-  -- cursor_pos(state.first_match)
   fn.confirm(next_match())
 end
 
