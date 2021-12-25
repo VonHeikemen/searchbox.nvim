@@ -213,7 +213,7 @@ Look for the exact word under the cursor.
 
 Use the selected text as a search term. (Visual mode):
 
-> Due to limitations on the input, it can't handle newlines well or even the escape sequence \n. So whatever you have selected, must be one line.
+> Due to limitations on the input, it can't handle newlines well. So whatever you have selected, must be one line. The escape sequence `\n` can be use in the search term but will not be interpreted on the second input of search and replace.
 
 ```vim
 y:SearchBoxReplace -- <C-r>"<CR>
