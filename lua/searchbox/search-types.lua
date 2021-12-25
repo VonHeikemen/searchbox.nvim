@@ -288,8 +288,9 @@ M.replace = {
         local enough_space = screen >= 14
         local range = search_opts.visual_mode and "'<,'>s" or '%s'
         local cmd = [[ %s//%s/%s ]]
+        local replacement = vim.fn.escape(value, '/')
 
-        local replace_cmd = cmd:format(range, value, flags)
+        local replace_cmd = cmd:format(range, replacement, flags)
 
         if search_opts.confirm == 'menu' and enough_space then
           return M.confirm(value, state)
@@ -297,7 +298,7 @@ M.replace = {
 
         -- change to native confirm if there isn't enough space
         if search_opts.confirm == 'menu' then
-          replace_cmd = cmd:format(range, value, 'gc')
+          replace_cmd = cmd:format(range, replacement, 'gc')
         end
 
         vim.cmd(replace_cmd)
