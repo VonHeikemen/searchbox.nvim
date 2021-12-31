@@ -178,7 +178,12 @@ M.match_all = {
 
     vim.fn.setreg('/', query)
     local results = buf_call(state, function()
-      return vim.fn.searchcount({maxcount = state.max_match})
+      local ok, res = pcall(vim.fn.searchcount, {maxcount = state.max_match})
+      if not ok then
+        return {total = 0}
+      end
+
+      return res
     end)
 
     state.total_matches = results.total
