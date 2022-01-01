@@ -38,6 +38,12 @@ use {
 }
 ```
 
+With `paq`.
+
+```lua
+    'VonHeikemen/searchbox.nvim',;
+    'MunifTanjim/nui.nvim';
+```
 ### Types of search
 
 There are four kinds of search:
@@ -339,4 +345,5 @@ If you want to improve the UI it will be better if you contribute to [nui.nvim](
 If you find this tool useful and want to support my efforts, [buy me a coffee ☕](https://www.buymeacoffee.com/vonheikemen).
 
 [![buy me a coffee](https://res.cloudinary.com/vonheikemen/image/upload/v1618466522/buy-me-coffee_ah0uzh.png)](https://www.buymeacoffee.com/vonheikemen)
+
 
