@@ -20,14 +20,14 @@ Make sure you have [Neovim v0.5.1](https://github.com/neovim/neovim/releases/tag
 
 Use your favorite plugin manager. For example.
 
-With `vim-plug`
+With `vim-plug`:
 
 ```vim
 Plug 'MunifTanjim/nui.nvim'
 Plug 'VonHeikemen/searchbox.nvim'
 ```
 
-With `packer`.
+With `packer`:
 
 ```lua
 use {
@@ -38,10 +38,10 @@ use {
 }
 ```
 
-With `paq`.
+With `paq`:
 
 ```lua
-    'VonHeikemen/searchbox.nvim',;
+    'VonHeikemen/searchbox.nvim';
     'MunifTanjim/nui.nvim';
 ```
 ### Types of search
