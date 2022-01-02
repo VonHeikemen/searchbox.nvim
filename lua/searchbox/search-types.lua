@@ -124,13 +124,8 @@ M.match_all = {
     state.on_done(nil, 'match_all')
   end,
   on_submit = function(value, opts, state)
-    local cmd = 'normal n'
-    if opts.reverse then
-      cmd = 'normal N'
-    end
-
-    local ok, err = pcall(vim.cmd, cmd)
-    if not ok then
+    if state.total_matches == 0 then
+      local _, err = pcall(vim.cmd, '//')
       print_err(err)
     end
 
@@ -158,9 +153,9 @@ M.match_all = {
     opts = opts or {}
     local query = utils.build_search(value, opts, state)
 
-    local searchpos = function()
+    local searchpos = function(flags)
       local stopline = state.range.ends[1]
-      local ok, pos = pcall(vim.fn.searchpos, query, '', stopline)
+      local ok, pos = pcall(vim.fn.searchpos, query, flags, stopline)
       if not ok then
         return {line = 0, col = 0}
       end
@@ -187,8 +182,16 @@ M.match_all = {
     end)
 
     state.total_matches = results.total
+    local cursor_pos = opts.visual_mode
+      and state.range.start
+      or state.start_cursor
 
     if results.total == 0 then
+      -- restore cursor position
+      buf_call(state, function()
+        vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
+        vim.api.nvim_win_set_cursor(state.winid, cursor_pos)
+      end)
       return
     end
 
@@ -197,8 +200,9 @@ M.match_all = {
       vim.fn.setpos('.', {0, start[1], start[2]})
     end)
 
+    -- highlight all the things
     for i = 1, results.total, 1 do
-      local pos = buf_call(state, searchpos)
+      local pos = buf_call(state, function() return searchpos('') end)
 
       -- check if there is a match
       if pos.line == 0 and pos.col == 0 then
@@ -212,12 +216,13 @@ M.match_all = {
       highlight_text(state.bufnr, pos)
     end
 
-    local pos = opts.visual_mode
-      and state.range.start
-      or state.start_cursor
 
+    -- move to nearest match
     buf_call(state, function()
-      vim.fn.setpos('.', {0, pos[1], pos[2]})
+      vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
+      local flags = opts.reverse and 'cb' or 'c'
+      local nearest = searchpos(flags)
+      vim.api.nvim_win_set_cursor(state.winid, {nearest.line, nearest.col})
     end)
   end
 }
