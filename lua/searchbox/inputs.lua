@@ -83,7 +83,7 @@ end
 
 M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
-  local prompt = input.input_props.prompt
+  local prompt = input._.prompt
   local prompt_length = 0
 
   if type(prompt.length) == 'function' then
