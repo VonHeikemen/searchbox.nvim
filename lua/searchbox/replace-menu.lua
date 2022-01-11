@@ -47,9 +47,6 @@ local get_row = function()
 end
 
 M.confirm_action = function(handlers)
-  local og_timelen = vim.opt.timeoutlen:get()
-  vim.opt.timeoutlen = 3
-
   move_screen()
   popup_options.position.row = get_row()
 
@@ -74,23 +71,23 @@ M.confirm_action = function(handlers)
       submit = {'<CR>'},
     },
     on_close = function()
-      vim.opt.timeoutlen = og_timelen
       handlers.on_close()
     end,
     on_submit = function(item)
-      vim.opt.timeoutlen = og_timelen
       handlers.on_submit(item)
     end,
   })
 
   menu:mount()
 
-  menu:on(event.BufLeave, function()
-    vim.opt.timeoutlen = og_timelen
-  end)
-
   function map(lhs, rhs)
-    vim.api.nvim_buf_set_keymap(menu.bufnr, 'n', lhs, rhs, {noremap = false})
+    vim.api.nvim_buf_set_keymap(
+      menu.bufnr,
+      'n',
+      lhs,
+      rhs,
+      {noremap = false, nowait = true}
+    )
   end
 
   map('y', 'gg<CR>')
