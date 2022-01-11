@@ -71,6 +71,7 @@ M.search = function(config, search_opts, handlers)
 
   input:mount()
 
+  input._prompt = search_opts.prompt
   M.default_mappings(input, state.winid)
 
   config.hooks.after_mount(input)
@@ -83,7 +84,7 @@ end
 
 M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
-  local prompt = input._.prompt
+  local prompt = input._prompt
   local prompt_length = 0
 
   if type(prompt.length) == 'function' then

@@ -317,6 +317,7 @@ M.replace = {
     })
 
     input:mount()
+    input._prompt = ' '
     require('searchbox.inputs').default_mappings(input, state.winid)
   end,
 }
