@@ -84,13 +84,18 @@ end
 
 M.default_mappings = function(input, winid)
   local map = utils.create_map(input, false)
-  local prompt = input._prompt
-  local prompt_length = 0
 
-  if type(prompt.length) == 'function' then
-    prompt_length = prompt:length()
-  elseif type(prompt.len) == 'function' then
-    prompt_length = prompt:len()
+  if vim.fn.has('nvim-0.7') == 0 then
+    local prompt = input._prompt
+    local prompt_length = 0
+
+    if type(prompt.length) == 'function' then
+      prompt_length = prompt:length()
+    elseif type(prompt.len) == 'function' then
+      prompt_length = prompt:len()
+    end
+
+    map('<BS>', function() M.prompt_backspace(prompt_length) end)
   end
 
   local bufmap = function(lhs, rhs)
@@ -103,7 +108,6 @@ M.default_mappings = function(input, winid)
 
   map('<C-c>', input.input_props.on_close)
   map('<Esc>', input.input_props.on_close)
-  map('<BS>', function() M.prompt_backspace(prompt_length) end)
 
 
   map('<C-y>', function() win_exe('\\<C-y>') end)
