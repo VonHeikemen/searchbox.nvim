@@ -22,7 +22,7 @@ incsearch: ~
 match_all: ~
     Highlights all the matches in the buffer as you type. By default matches
     will stay highlighted after you submit your search. You can clear them
-    with `:SearchBoxClear`. If you want the highlight to disapear after
+    with `:SearchBoxClear`. If you want the highlight to disappear after
     the input closes, add the `clear_matches` argument (more on this later).
 
 simple: ~
@@ -209,7 +209,9 @@ of commands. The arguments can be provided as a lua table.
 Default keymaps                                            *searchbox-keymaps*
 
 Inside the input you can use the following keymaps:
-    * `Alt + .`: Writes the content of the last search in the input.
+    * `Alt + .`: Writes the content of the last search in the input. This will
+      include any special regex symbols. For example, if your last search was
+      in visual mode `\%V` will be included as a prefix.
     * `Enter`: Submit input.
     * `Esc`: Closes input.
     * `Ctrl + c`: Close input.

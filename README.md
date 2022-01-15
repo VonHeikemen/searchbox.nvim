@@ -41,8 +41,8 @@ use {
 With `paq`:
 
 ```lua
-    'VonHeikemen/searchbox.nvim';
-    'MunifTanjim/nui.nvim';
+'VonHeikemen/searchbox.nvim';
+'MunifTanjim/nui.nvim';
 ```
 ### Types of search
 
@@ -50,7 +50,7 @@ There are four kinds of search:
 
 * `incsearch`: Highlights the nearest match of your query as you type.
 
-* `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disapear after the input closes, add the `clear_matches` argument (more on this later).
+* `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disappear after the input closes, add the `clear_matches` argument (more on this later).
 
 * `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
 
@@ -114,7 +114,7 @@ When using the lua api add `<Esc>` at the beginning of the binding.
 
 ### Search arguments
 
-You can tweak the behaviour of the search if pass any of these properties:
+You can tweak the behaviour of the search if you pass any of these properties:
 
 * `reverse`: Look for matches above the cursor.
 * `exact`: Look for an exact match.
@@ -249,7 +249,7 @@ Confirm every match of search and replace.
 
 Inside the input you can use the following keymaps:
 
-* `Alt + .`: Writes the content of the last search in the input.
+* `Alt + .`: Writes the content of the last search in the input. This will include any special regex symbols. For example, if your last search was in visual mode `\%V` will be included as a prefix.
 * `Enter`: Submit input.
 * `Esc`: Closes input.
 * `Ctrl + c`: Close input.
