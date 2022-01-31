@@ -209,19 +209,15 @@ M.match_all = {
         break
       end
 
-      if i == 1 then
-        state.first_match = pos
-      end
-
       highlight_text(state.bufnr, pos)
     end
-
 
     -- move to nearest match
     buf_call(state, function()
       vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
       local flags = opts.reverse and 'cb' or 'c'
       local nearest = searchpos(flags)
+      state.first_match = nearest
       vim.api.nvim_win_set_cursor(state.winid, {nearest.line, nearest.col})
     end)
   end
@@ -433,7 +429,7 @@ M.confirm = function(value, state)
     })
   end
 
-  fn.confirm(next_match())
+  fn.confirm(state.first_match)
 end
 
 return M
