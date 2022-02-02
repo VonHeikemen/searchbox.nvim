@@ -429,6 +429,7 @@ M.confirm = function(value, state)
     menu.confirm_action({
       on_close = function()
         clear_matches(state)
+        state.on_done(value, 'replace')
       end,
       on_submit = function(item)
         fn.execute(item, pos)
