@@ -133,6 +133,13 @@ M.match_all = {
       clear_matches(state)
     end
 
+    -- Make sure you land on the first match.
+    -- Y'all can blame netrw for this one.
+    vim.api.nvim_win_set_cursor(
+      state.winid,
+      {state.first_match.line, state.first_match.col - 1}
+    )
+
     state.on_done(value, 'match_all')
   end,
   on_change = function(value, opts, state)
