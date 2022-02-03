@@ -204,7 +204,7 @@ M.match_all = {
 
     buf_call(state, function()
       local start = state.range.start
-      vim.fn.setpos('.', {0, start[1], start[2]})
+      vim.fn.setpos('.', {0, start[1], start[2] - 1})
     end)
 
     -- highlight all the things
