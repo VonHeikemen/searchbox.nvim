@@ -193,12 +193,13 @@ M.match_all = {
 
     buf_call(state, function()
       local start = state.range.start
-      vim.fn.setpos('.', {0, start[1], start[2] - 1})
+      vim.fn.setpos('.', {0, start[1], start[2]})
     end)
 
     -- highlight all the things
     for i = 1, results.total, 1 do
-      local pos = buf_call(state, function() return searchpos('') end)
+      local flags = i == 1 and 'c' or ''
+      local pos = buf_call(state, function() return searchpos(flags) end)
 
       -- check if there is a match
       if pos.line == 0 and pos.col == 0 then
