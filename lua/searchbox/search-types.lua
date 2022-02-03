@@ -426,15 +426,17 @@ M.confirm = function(value, state)
       cursor_pos({pos.end_line, pos.end_col - 15})
     end
 
-    menu.confirm_action({
-      on_close = function()
-        clear_matches(state)
-        state.on_done(value, 'replace')
-      end,
-      on_submit = function(item)
-        fn.execute(item, pos)
-      end
-    })
+    vim.defer_fn(function()
+      menu.confirm_action({
+        on_close = function()
+          clear_matches(state)
+          state.on_done(value, 'replace')
+        end,
+        on_submit = function(item)
+          fn.execute(item, pos)
+        end
+      })
+    end, 5)
   end
 
   fn.confirm(state.first_match)
