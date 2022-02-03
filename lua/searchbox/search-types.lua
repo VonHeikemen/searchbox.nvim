@@ -146,17 +146,6 @@ M.match_all = {
     utils.clear_matches(state.bufnr)
     if value == '' then return end
 
-    -- figure out 'maxcount' for searchcount
-    state.max_match = state.max_match or buf_call(state, function()
-      local size = vim.fn.getfsize(vim.fn.expand('%'))
-
-      if size < 0 then
-        size = vim.o.lines * 10000
-      end
-
-      return size
-    end)
-
     opts = opts or {}
     local query = utils.build_search(value, opts, state)
 
@@ -180,7 +169,7 @@ M.match_all = {
 
     vim.fn.setreg('/', query)
     local results = buf_call(state, function()
-      local ok, res = pcall(vim.fn.searchcount, {maxcount = state.max_match})
+      local ok, res = pcall(vim.fn.searchcount, {maxcount = -1})
       if not ok then
         return {total = 0}
       end
