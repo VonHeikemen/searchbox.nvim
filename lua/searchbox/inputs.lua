@@ -103,7 +103,7 @@ M.default_mappings = function(input, winid)
   end
 
   local win_exe = function(cmd)
-    vim.fn.win_execute(winid, string.format('exe "normal %s"', cmd))
+    vim.fn.win_execute(winid, string.format('exe "normal! %s"', cmd))
   end
 
   map('<C-c>', input.input_props.on_close)
