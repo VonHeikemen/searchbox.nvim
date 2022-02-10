@@ -21,11 +21,15 @@ local popup_options = {
 
 local move_screen = function()
   local screen = vim.opt.lines:get()
+  local redraw = [[
+    normal! %s
+    redraw
+  ]]
 
   if screen > 13 and screen < 26 then
-    vim.cmd('normal! zt')
+    vim.cmd(redraw:format('zt'))
   else
-    vim.cmd('normal! zz')
+    vim.cmd(redraw:format('zz'))
   end
 end
 

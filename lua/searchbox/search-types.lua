@@ -319,9 +319,11 @@ M.confirm = function(value, state)
   local fn = {}
   local match_index = 0
   local menu = require('searchbox.replace-menu')
+  local search_term = vim.fn.getreg('/')
+
   local next_match = function()
-    local pos = vim.fn.searchpos(vim.fn.getreg('/'), 'cw')
-    local off = vim.fn.searchpos(vim.fn.getreg('/'), 'cwe')
+    local pos = vim.fn.searchpos(search_term, 'cw')
+    local off = vim.fn.searchpos(search_term, 'cwe')
 
     return {
       line = pos[1],
@@ -375,7 +377,8 @@ M.confirm = function(value, state)
 
     if item.action == 'next' then
       -- move so next_match can do the right thing.
-      cursor_pos({pos.end_line, pos.end_col})
+      local offset = search_term:len() > 1 and 0 or 1
+      cursor_pos({pos.end_line, pos.end_col + offset})
       stop = false
     end
 
@@ -416,17 +419,15 @@ M.confirm = function(value, state)
       cursor_pos({pos.end_line, pos.end_col - 15})
     end
 
-    vim.defer_fn(function()
-      menu.confirm_action({
-        on_close = function()
-          clear_matches(state)
-          state.on_done(value, 'replace')
-        end,
-        on_submit = function(item)
-          fn.execute(item, pos)
-        end
-      })
-    end, 5)
+    menu.confirm_action({
+      on_close = function()
+        clear_matches(state)
+        state.on_done(value, 'replace')
+      end,
+      on_submit = function(item)
+        fn.execute(item, pos)
+      end
+    })
   end
 
   fn.confirm(state.first_match)
