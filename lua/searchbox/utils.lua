@@ -1,7 +1,8 @@
 local M = {}
 local format = string.format
 
-M.hl_name = 'SearchBoxMatch'
+M.hl_name         = 'SearchBoxMatch'
+M.hl_name_current = 'SearchBoxMatchCurrent'
 M.hl_namespace = vim.api.nvim_create_namespace(M.hl_name)
 
 M.clear_matches = function(bufnr)

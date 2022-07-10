@@ -341,6 +341,20 @@ hooks.on_done: ~
     argument is `nil` and the second argument is the type of search.
 
 ==============================================================================
+Highlights                                              *searchbox-highlights*
+
+The folllowing highlight groups are available:
+
+                                                           *hl-SearchBoxMatch*
+SearchBoxMatch:
+    All search result matches. Defaults to `Search`
+
+                                                    *hl-SearchBoxMatchCurrent*
+SearchBoxMatchCurrent:
+    The search result you will land on after completing the search.
+    Defaults to `IncSearch` or `Search`
+
+==============================================================================
 Examples                                                  *searchbox-examples*
 
 Make a reverse search, like the default `?`:

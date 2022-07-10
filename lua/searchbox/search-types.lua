@@ -17,12 +17,12 @@ local print_err = function(err)
   vim.notify(msg, vim.log.levels.ERROR)
 end
 
-local highlight_text = function(bufnr, pos)
+local highlight_text = function(bufnr, pos, hl_name)
   local h = function(line, col, offset)
     vim.api.nvim_buf_add_highlight(
       bufnr,
       utils.hl_namespace,
-      utils.hl_name,
+      hl_name or utils.hl_name,
       line - 1,
       col - 1,
       offset
@@ -206,7 +206,8 @@ M.match_all = {
         break
       end
 
-      highlight_text(state.bufnr, pos)
+      local hl_name = i == results.current and utils.hl_name_current or nil
+      highlight_text(state.bufnr, pos, hl_name)
     end
 
     -- move to nearest match
