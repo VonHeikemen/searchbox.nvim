@@ -38,7 +38,8 @@ M.create_map = function(input, force)
   end
 end
 
-M.build_search = function(value, opts, state)
+M.build_search = function(value, state)
+  local opts = state.search_opts
   local query = value
 
   if opts.exact then
@@ -91,6 +92,52 @@ end
 M.validate_confirm_mode = function(value)
   return value == 'menu' or value == 'native' or value == 'off'
 end
+
+M.print_err = function(err)
+  local idx = err:find(':E')
+  local msg = err:sub(idx + 1)
+  vim.notify(msg, vim.log.levels.ERROR)
+end
+
+M.highlight_text = function(bufnr, pos, hl_name)
+  local h = function(line, col, offset)
+    vim.api.nvim_buf_add_highlight(
+      bufnr,
+      M.hl_namespace,
+      hl_name or M.hl_name,
+      line - 1,
+      col - 1,
+      offset
+    )
+  end
+
+  if pos.one_line then
+    h(pos.line, pos.col, pos.end_col)
+  else
+    -- highlight first line
+    h(pos.line, pos.col, -1)
+
+    -- highlight last line
+    h(pos.end_line, 1, pos.end_col)
+
+    -- do the rest
+    for curr_line=pos.line + 1, pos.end_line - 1, 1 do
+      h(curr_line, 1, -1)
+    end
+  end
+end
+
+M.is_position_equal = function(a, b)
+  if a == b then return true end
+  if a == nil then return false end
+  if b == nil then return false end
+  return a[1] == b[1] and a[2] == b[2]
+end
+
+M.to_position = function(result)
+  return {result.line, result.col}
+end
+
 
 return M
 

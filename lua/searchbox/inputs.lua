@@ -7,6 +7,14 @@ local utils = require('searchbox.utils')
 
 M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
+  local start_cursor = {cursor[2], cursor[3]}
+
+  local title = utils.set_title(search_opts, config)
+  local popup_opts = config.popup
+
+  if title ~= '' then
+    popup_opts = utils.merge(config.popup, {border = {text = {top = title}}})
+  end
 
   local state = {
     match_ns = utils.hl_namespace,
@@ -15,8 +23,12 @@ M.search = function(config, search_opts, handlers)
     line = cursor[2],
     line_prev = -1,
     use_range = false,
-    start_cursor = {cursor[2], cursor[3]},
-    range = {start = {0, 0}, ends = {0, 0}}
+    start_cursor = start_cursor,
+    current_cursor = start_cursor,
+    range = {start = {0, 0}, ends = {0, 0}},
+    query = nil,
+    search_opts = search_opts,
+    popup_opts = popup_opts,
   }
 
   if search_opts.visual_mode then
@@ -38,13 +50,7 @@ M.search = function(config, search_opts, handlers)
     }
   end
 
-  local title = utils.set_title(search_opts, config)
-  local popup_opts = config.popup
-
-  if title ~= '' then
-    popup_opts = utils.merge(config.popup, {border = {text = {top = title}}})
-  end
-
+  local ref = { input = nil }
   local input = Input(popup_opts, {
     prompt = search_opts.prompt,
     default_value = search_opts.default_value or '',
@@ -55,24 +61,25 @@ M.search = function(config, search_opts, handlers)
       handlers.on_close(state)
     end,
     on_submit = function(value)
-      local query = utils.build_search(value, search_opts, state)
+      local query = utils.build_search(value, state)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
 
       state.on_done = config.hooks.on_done
-      handlers.on_submit(value, search_opts, state, popup_opts)
+      handlers.on_submit(value, state, ref.input, popup_opts)
     end,
     on_change = function(value)
-      handlers.on_change(value, search_opts, state)
+      handlers.on_change(value, state, ref.input)
     end,
   })
+  ref.input = input
 
   config.hooks.before_mount(input)
 
   input:mount()
 
   input._prompt = search_opts.prompt
-  M.default_mappings(input, state.winid)
+  M.add_mappings(input, state, handlers.mappings)
 
   config.hooks.after_mount(input)
 
@@ -82,7 +89,7 @@ M.search = function(config, search_opts, handlers)
   end)
 end
 
-M.default_mappings = function(input, winid)
+M.add_mappings = function(input, state, other_mappings)
   local map = utils.create_map(input, false)
 
   if vim.fn.has('nvim-0.7') == 0 then
@@ -98,17 +105,12 @@ M.default_mappings = function(input, winid)
     map('<BS>', function() M.prompt_backspace(prompt_length) end)
   end
 
-  local bufmap = function(lhs, rhs)
-    vim.api.nvim_buf_set_keymap(input.bufnr, 'i', lhs, rhs, {noremap = true})
-  end
-
   local win_exe = function(cmd)
-    vim.fn.win_execute(winid, string.format('exe "normal! %s"', cmd))
+    vim.fn.win_execute(state.winid, string.format('exe "normal! %s"', cmd))
   end
 
   map('<C-c>', input.input_props.on_close)
   map('<Esc>', input.input_props.on_close)
-
 
   map('<C-y>', function() win_exe('\\<C-y>') end)
   map('<C-e>', function() win_exe('\\<C-e>') end)
@@ -116,7 +118,11 @@ M.default_mappings = function(input, winid)
   map('<C-f>', function() win_exe('\\<C-f>') end)
   map('<C-b>', function() win_exe('\\<C-b>') end)
 
-  bufmap('<M-.>', '<C-r>=getreg("/")<CR>')
+  map('<M-.>', '<C-r>=getreg("/")<CR>')
+
+  if other_mappings ~= nil then
+    other_mappings(state, input, map, win_exe)
+  end
 end
 
 -- Default backspace has inconsistent behavior, have to make our own (for now)
