@@ -77,6 +77,7 @@ M.search = function(config, search_opts, handlers)
   config.hooks.before_mount(input)
 
   input:mount()
+  vim.api.nvim_buf_set_option(input.bufnr, 'filetype', 'SearchBox')
 
   input._prompt = search_opts.prompt
   M.add_mappings(input, state, handlers.mappings)
