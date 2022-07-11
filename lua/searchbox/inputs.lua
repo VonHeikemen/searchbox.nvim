@@ -4,6 +4,7 @@ local Input = require('nui.input')
 local event = require('nui.utils.autocmd').event
 
 local utils = require('searchbox.utils')
+local merge = require('searchbox.utils.pure').merge
 
 M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
@@ -13,7 +14,7 @@ M.search = function(config, search_opts, handlers)
   local popup_opts = config.popup
 
   if title ~= '' then
-    popup_opts = utils.merge(config.popup, {border = {text = {top = title}}})
+    popup_opts = merge(config.popup, {border = {text = {top = title}}})
   end
 
   local state = {

@@ -124,7 +124,10 @@ When using the lua api add `<Esc>` at the beginning of the binding.
 You can tweak the behaviour of the search if you pass any of these properties:
 
 * `reverse`: Look for matches above the cursor.
-* `exact`: Look for an exact match (no magic).
+* `mode`: Query mode:
+  * `exact`: Look for exact input
+  * `pattern`: Look for pattern (magic)
+  * `fuzzy`: Look for fuzzy pattern
 * `case_sensitive`: Look for a case-sensitive match.
 * `title`: Set title for the popup window.
 * `prompt`: Set input prompt.
@@ -146,7 +149,7 @@ For *replace*:
 When using the command api the arguments are a space separated list of key/value pairs. The syntax for the arguments is this: `key=value`.
 
 ```vim
-:SearchBoxMatchAll title=Match exact=true visual_mode=true<CR>
+:SearchBoxMatchAll title=Match mode=exact visual_mode=true<CR>
 ```
 
 Because whitespace acts like a separator between the arguments if you want to use it as a value you need to escape it, or use a quoted argument. If you want to use `Match All` as a title, these are your options.
@@ -204,7 +207,7 @@ Make the highlight of `match_all` go away after submit.
 Move to the nearest exact match without any fuss.
 
 ```vim
-:SearchBoxSimple exact=true<CR>
+:SearchBoxSimple mode=exact<CR>
 ```
 
 Start a search and replace.
@@ -222,7 +225,7 @@ Use the word under the cursor to begin search and replace. (Normal mode).
 Look for the exact word under the cursor.
 
 ```vim
-:SearchBoxMatchAll exact=true -- <C-r>=expand('<cword>')<CR><CR>
+:SearchBoxMatchAll mode=exact -- <C-r>=expand('<cword>')<CR><CR>
 ```
 
 Use the selected text as a search term. (Visual mode):
@@ -236,7 +239,7 @@ y:SearchBoxReplace -- <C-r>"<CR>
 Search and replace within the range of the selected text, and look for an exact match. (Visual mode)
 
 ```vim
-:SearchBoxReplace exact=true visual_mode=true<CR>
+:SearchBoxReplace mode=exact visual_mode=true<CR>
 ```
 
 Confirm every match of search and replace.
@@ -300,7 +303,8 @@ require('searchbox').setup({
   icons = {
     search = ' ',
     case_sensitive = ' ',
-    exact = ' ',
+    pattern = ' ',
+    fuzzy = ' ',
   },
   popup = {
     relative = 'win',

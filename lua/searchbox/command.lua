@@ -1,3 +1,6 @@
+local config = require('searchbox.config')
+local search = require('searchbox.search')
+
 local M = {}
 
 local bool = function(value)
@@ -24,7 +27,7 @@ end
 
 local to_opts = {
   reverse = bool,
-  exact = bool,
+  mode = str,
   visual_mode = bool,
   clear_matches = bool,
   case_sensitive = bool,
@@ -172,8 +175,9 @@ M.run = function(search_type, line1, line2, count, input)
     opts.range = {line1, line2}
   end
 
-  require('searchbox')[search_type](opts)
+  opts.mode = config.MODE[opts.mode] or config.MODE.pattern
+
+  search[search_type](opts)
 end
 
 return M
-

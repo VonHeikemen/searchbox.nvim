@@ -1,5 +1,7 @@
 local M = {}
+local MODE = require('searchbox.config').MODE
 local utils = require('searchbox.utils')
+local merge = require('searchbox.utils.pure').merge
 local Input = require('nui.input')
 local Line = require('nui.line')
 local Text = require('nui.text')
@@ -114,11 +116,14 @@ M.incsearch = {
 local function match_all_render(state, input)
   vim.defer_fn(function()
 
+    local search_opts = state.search_opts
     local has_matches = state.total_matches ~= nil and state.total_matches > 0
-    local has_no_matches = state.total_matches ~= nil and state.total_matches == 0
+    local has_no_matches =
+      state.query ~= nil and
+      state.total_matches ~= nil and state.total_matches == 0
 
-    local text_hl   = has_no_matches and 'WarningMsg' or 'Normal'
-    local border_hl = has_no_matches and 'WarningMsg' or 'FloatBorder'
+    local text_hl   = has_no_matches and 'SearchBoxWarning' or 'Normal'
+    local border_hl = has_no_matches and 'SearchBoxWarning' or 'FloatBorder'
 
     input.border:set_text('top', function(width)
       return Line({
@@ -136,15 +141,16 @@ local function match_all_render(state, input)
       end
       line:append(Text('──', border_hl))
 
-      local render_option = function(icon, value)
-        local option_on_hl  = has_no_matches and 'WarningMsg' or 'Normal'
+      local render_option = function(icon, value, hl)
+        local option_on_hl  = has_no_matches and 'SearchBoxWarning' or 'Normal'
         local option_off_hl = 'FloatBorder'
-        return Text(icon, value and option_on_hl or option_off_hl)
+        return Text(icon, hl or (value and option_on_hl or option_off_hl))
       end
-      print(vim.inspect(state.search_opts))
 
-      line:append(render_option(state.config.icons.case_sensitive, state.search_opts.case_sensitive))
-      line:append(render_option(state.config.icons.exact, (not state.search_opts.exact)))
+      local MODE_HL = { 'FloatBorder', has_no_matches and 'SearchBoxWarning' or 'Normal', 'SearchBoxSpecial' }
+
+      line:append(render_option(state.config.icons.case_sensitive, search_opts.case_sensitive))
+      line:append(render_option(state.config.icons.pattern, (search_opts.mode ~= MODE.exact), MODE_HL[search_opts.mode]))
 
       return line
     end, 'right')
@@ -260,8 +266,7 @@ local function match_all_move(state, input, forward)
   match_all_highlight(state, input)
 end
 
-local function match_toggle_search(state, input, option)
-  state.search_opts[option] = not state.search_opts[option]
+local function match_all_update_query(state, input)
   state.query = utils.build_search(state.value, state)
 
   local pos = buf_call(state, function()
@@ -287,12 +292,26 @@ local function match_toggle_search(state, input, option)
   match_all_highlight(state, input)
 end
 
+local function match_toggle_search(state, input, option)
+  state.search_opts[option] = not state.search_opts[option]
+  match_all_update_query(state, input)
+end
+
+local function match_toggle_mode(state, input)
+  local mode = state.search_opts.mode + 1
+  if mode >= MODE.MAX then
+    mode = MODE.MIN + 1
+  end
+  state.search_opts.mode = mode
+  match_all_update_query(state, input)
+end
+
 M.match_all = {
   buf_leave = clear_matches,
   on_mount = function(state, input, map, win_exe)
     map('<Tab>',   function() match_all_move(state, input, true) end)
     map('<S-Tab>', function() match_all_move(state, input, false) end)
-    map('<A-m>',   function() match_toggle_search(state, input, 'exact') end)
+    map('<A-m>',   function() match_toggle_mode(state, input) end)
     map('<A-a>',   function() match_toggle_search(state, input, 'case_sensitive') end)
 
     match_all_render(state, input)
@@ -383,7 +402,7 @@ M.replace = {
       }
     }
 
-    local replace_popup = utils.merge(popup_opts, border)
+    local replace_popup = merge(popup_opts, border)
 
     local input = Input(replace_popup, {
       prompt = ' ',

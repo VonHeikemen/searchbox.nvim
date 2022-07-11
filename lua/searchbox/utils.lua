@@ -1,3 +1,5 @@
+local config = require('searchbox.config')
+
 local M = {}
 local format = string.format
 
@@ -18,15 +20,6 @@ M.feedkeys = function(keys)
   )
 end
 
-M.merge = function(defaults, override)
-  return vim.tbl_deep_extend(
-    'force',
-    {},
-    defaults,
-    override or {}
-  )
-end
-
 M.create_map = function(input, force)
   return function(lhs, rhs)
     if type(rhs) == 'string' then
@@ -42,8 +35,20 @@ M.build_search = function(value, state)
   local opts = state.search_opts
   local query = value
 
-  if opts.exact then
-    query = '\\V' .. vim.fn.escape(query, '\\/')
+  if opts.mode == config.MODE.exact then
+    query = '\\V' .. vim.fn.escape(query, '\\')
+  elseif opts.mode == config.MODE.fuzzy then
+    -- Don't start matching before 2 charts
+    if #value < 2 then
+      return nil
+    end
+    query = '\\v' ..
+      table.concat(
+        vim.tbl_map(
+          function(c) return vim.fn.escape(c, '\\') end,
+          vim.split(query, '')),
+        '.{-}'
+      )
   else
     query = '\\v' .. query
   end
