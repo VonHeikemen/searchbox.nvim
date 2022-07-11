@@ -334,6 +334,10 @@ require('searchbox').setup({
 
 It's very possible that I can't simulate every feature of the built-in search (`/` and  `?`).
 
+## Alternatives
+
+* [romgrk/searchbox.nvim](https://github.com/romgrk/searchbox.nvim): Fork of searchbox.nvim with extra features, like fuzzy search and icons.
+
 ## Contributing
 
 Bug fixes are welcome. Everything else? Let's discuss it first.
@@ -345,5 +349,4 @@ If you want to improve the UI it will be better if you contribute to [nui.nvim](
 If you find this tool useful and want to support my efforts, [buy me a coffee ☕](https://www.buymeacoffee.com/vonheikemen).
 
 [![buy me a coffee](https://res.cloudinary.com/vonheikemen/image/upload/v1618466522/buy-me-coffee_ah0uzh.png)](https://www.buymeacoffee.com/vonheikemen)
-
 
