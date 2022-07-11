@@ -27,6 +27,7 @@ local to_opts = {
   exact = bool,
   visual_mode = bool,
   clear_matches = bool,
+  case_sensitive = bool,
   title = str,
   prompt = str,
   confirm = str,

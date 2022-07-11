@@ -26,7 +26,9 @@ M.search = function(config, search_opts, handlers)
     start_cursor = start_cursor,
     current_cursor = start_cursor,
     range = {start = {0, 0}, ends = {0, 0}},
+    value = '',
     query = nil,
+    config = config,
     search_opts = search_opts,
     popup_opts = popup_opts,
     total_matches = nil,
@@ -120,8 +122,6 @@ M.add_mappings = function(input, state, on_mount)
 
   map('<C-f>', function() win_exe('\\<C-f>') end)
   map('<C-b>', function() win_exe('\\<C-b>') end)
-
-  map('<M-.>', '<C-r>=getreg("/")<CR>')
 
   if on_mount ~= nil then
     on_mount(state, input, map, win_exe)

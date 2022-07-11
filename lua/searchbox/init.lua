@@ -11,11 +11,17 @@ local search_defaults = {
   exact = false,
   visual_mode = false,
   title = false,
+  case_sensitive = false,
   prompt = ' ',
   range = {-1, -1}
 }
 
 local defaults = {
+  icons = {
+    search = ' ',
+    case_sensitive = ' ',
+    exact = ' ',
+  },
   popup = {
     relative = 'win',
     position = {

@@ -43,7 +43,15 @@ M.build_search = function(value, state)
   local query = value
 
   if opts.exact then
-    query = format('\\<%s\\>', query)
+    query = '\\V' .. vim.fn.escape(query, '\\/')
+  else
+    query = '\\v' .. query
+  end
+  if opts.case_sensitive then
+    query = '\\C' .. query
+  else
+    -- Don't add '\c': the user might have smartcase on
+    -- query = '\\c' .. query
   end
 
   if opts.visual_mode then

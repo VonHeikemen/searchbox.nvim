@@ -48,9 +48,9 @@ With `paq`:
 
 There are four kinds of search:
 
-* `incsearch`: Highlights the nearest match of your query as you type.
-
 * `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disappear after the input closes, add the `clear_matches` argument (more on this later).
+
+* `incsearch`: Highlights the nearest match of your query as you type.
 
 * `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
 
@@ -117,7 +117,8 @@ When using the lua api add `<Esc>` at the beginning of the binding.
 You can tweak the behaviour of the search if you pass any of these properties:
 
 * `reverse`: Look for matches above the cursor.
-* `exact`: Look for an exact match.
+* `exact`: Look for an exact match (no magic).
+* `case_sensitive`: Look for a case-sensitive match.
 * `title`: Set title for the popup window.
 * `prompt`: Set input prompt.
 * `default_value`: Set initial value for the input.
@@ -289,6 +290,11 @@ This are the defaults.
 
 ```lua
 require('searchbox').setup({
+  icons = {
+    search = ' ',
+    case_sensitive = ' ',
+    exact = ' ',
+  },
   popup = {
     relative = 'win',
     position = {

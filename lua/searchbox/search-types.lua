@@ -64,9 +64,8 @@ M.incsearch = {
       return
     end
 
-    opts = opts or {}
     local search_flags = 'c'
-    local query = utils.build_search(value, opts, state)
+    local query = utils.build_search(value, state)
 
     if opts.reverse then
       search_flags = 'bc'
@@ -123,7 +122,7 @@ local function match_all_render(state, input)
 
     input.border:set_text('top', function(width)
       return Line({
-        Text(_.truncate_text(' Search', width), text_hl)
+        Text(_.truncate_text(state.config.icons.search .. 'Search', width), text_hl)
       })
     end, 'left')
     input.border:set_text('bottom', function(width)
@@ -135,6 +134,17 @@ local function match_all_render(state, input)
       if has_no_matches then
         line:append(Text('No matches', text_hl))
       end
+      line:append(Text('──', border_hl))
+
+      local render_option = function(icon, value)
+        local option_on_hl  = has_no_matches and 'WarningMsg' or 'Normal'
+        local option_off_hl = 'FloatBorder'
+        return Text(icon, value and option_on_hl or option_off_hl)
+      end
+      print(vim.inspect(state.search_opts))
+
+      line:append(render_option(state.config.icons.case_sensitive, state.search_opts.case_sensitive))
+      line:append(render_option(state.config.icons.exact, (not state.search_opts.exact)))
 
       return line
     end, 'right')
@@ -147,7 +157,9 @@ local function match_all_highlight(state, input)
   local opts = state.search_opts
 
   utils.clear_matches(state.bufnr)
-  if state.query == '' or state.query == nil then return end
+  if state.value == '' or state.query == nil then
+    return match_all_render(state, input)
+  end
 
   vim.fn.setreg('/', state.query)
   local results = buf_call(state, function()
@@ -170,8 +182,7 @@ local function match_all_highlight(state, input)
       vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
       vim.api.nvim_win_set_cursor(state.winid, cursor_pos)
     end)
-    match_all_render(state, input)
-    return
+    return match_all_render(state, input)
   end
 
   -- Find nearest match
@@ -211,15 +222,13 @@ local function match_all_highlight(state, input)
     highlight_text(state.bufnr, pos, hl_name)
   end
 
-  match_all_render(state, input)
-
   -- move to nearest match
   buf_call(state, function()
     move_cursor(state, state.first_match)
     vim.cmd('normal! zv')
   end)
 
-  state.current_cursor = state.first_match
+  return match_all_render(state, input)
 end
 
 local function match_all_move(state, input, forward)
@@ -228,7 +237,7 @@ local function match_all_move(state, input, forward)
   end
 
   local pos = buf_call(state, function()
-    move_cursor(state, state.current_cursor)
+    move_cursor(state, state.first_match or state.current_cursor)
     local flags = forward and '' or 'b'
     return searchpos(state, flags)
   end)
@@ -251,15 +260,46 @@ local function match_all_move(state, input, forward)
   match_all_highlight(state, input)
 end
 
+local function match_toggle_search(state, input, option)
+  state.search_opts[option] = not state.search_opts[option]
+  state.query = utils.build_search(state.value, state)
+
+  local pos = buf_call(state, function()
+    move_cursor(state, state.current_cursor)
+    local flags = state.search_opts.reverse and 'b' or ''
+    return searchpos(state, flags)
+  end)
+
+  -- check if there is a match
+  if pos.line == 0 and pos.col == 0 then
+    return
+  end
+
+  local first_match = {pos.line, pos.col}
+
+  buf_call(state, function()
+    move_cursor(state, first_match)
+    vim.cmd('normal! zv')
+  end)
+
+  state.first_match = first_match
+
+  match_all_highlight(state, input)
+end
+
 M.match_all = {
   buf_leave = clear_matches,
   on_mount = function(state, input, map, win_exe)
     map('<Tab>',   function() match_all_move(state, input, true) end)
     map('<S-Tab>', function() match_all_move(state, input, false) end)
+    map('<A-m>',   function() match_toggle_search(state, input, 'exact') end)
+    map('<A-a>',   function() match_toggle_search(state, input, 'case_sensitive') end)
+
     match_all_render(state, input)
   end,
   on_change = function(value, state, input)
-    state.query = utils.build_search(value, state)
+    state.value = value
+    state.query = utils.build_search(state.value, state)
     state.first_match = nil
     match_all_highlight(state, input)
   end,
