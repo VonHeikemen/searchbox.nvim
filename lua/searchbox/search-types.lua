@@ -39,18 +39,6 @@ local searchpos = function(state, flags)
   }
 end
 
-local function update_border(edge, align, input, content, highlight)
-  vim.defer_fn(function()
-    input.border:set_text(edge, function(width)
-      return Line({
-        Text(_.truncate_text(content, width), highlight or 'Normal')
-      })
-    end, align)
-    input.border:set_highlight(highlight or 'FloatBorder')
-  end, 0)
-end
-
-
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = function(state)
@@ -124,6 +112,32 @@ M.incsearch = {
   end
 }
 
+local function match_all_render(state, input)
+  vim.defer_fn(function()
+
+    local has_matches = state.total_matches > 0
+    local text_hl = has_matches and 'Normal' or 'WarningMsg'
+    local border_hl = has_matches and 'FloatBorder' or 'WarningMsg'
+
+    input.border:set_text('top', function(width)
+      return Line({
+        Text(_.truncate_text(' Search', width), text_hl)
+      })
+    end, 'left')
+    input.border:set_text('bottom', function(width)
+      local text = has_matches and
+        fmt('%i/%i', state.current_index, state.total_matches) or
+        'No matches'
+
+      return Line({
+        Text(_.truncate_text(text, width), text_hl)
+      })
+    end, 'right')
+
+    input.border:set_highlight(border_hl)
+  end, 0)
+end
+
 local function match_all_highlight(state, input)
   local opts = state.search_opts
 
@@ -151,8 +165,7 @@ local function match_all_highlight(state, input)
       vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
       vim.api.nvim_win_set_cursor(state.winid, cursor_pos)
     end)
-    update_border('top', 'left', input, 'Search', 'WarningMsg')
-    update_border('bottom', 'right', input, 'No matches', 'WarningMsg')
+    match_all_render(state, input)
     return
   end
 
@@ -172,7 +185,7 @@ local function match_all_highlight(state, input)
     vim.fn.setpos('.', {0, start[1], start[2]})
   end)
 
-  local current_index = 0
+  state.current_index = 0
 
   -- highlight all matches
   for i = 1, results.total, 1 do
@@ -187,14 +200,13 @@ local function match_all_highlight(state, input)
     local hl_name = nil
     if is_position_equal({pos.line, pos.col}, state.first_match) then
       hl_name = utils.hl_name_current
-      current_index = i
+      state.current_index = i
     end
 
     highlight_text(state.bufnr, pos, hl_name)
   end
 
-  update_border('top', 'left', input, 'Search')
-  update_border('bottom', 'right', input, fmt('%i/%i', current_index, results.total))
+  match_all_render(state, input)
 
   -- move to nearest match
   buf_call(state, function()
