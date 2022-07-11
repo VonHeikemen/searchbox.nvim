@@ -83,6 +83,13 @@ They are also exposed as lua functions, so the following is also valid.
 :lua require('searchbox').incsearch()<CR>
 ```
 
+### In-search mappings
+
+In some cases, you can use the following mappings to toggle options while searching:
+
+ - `<M-m>`: Toggle **m**agic (exact search or magic pattern)
+ - `<M-a>`: Toggle c**a**se-sensitive
+
 ### Visual mode
 
 To get proper support in visual mode you'll need to add `visual_mode=true` to the list of arguments.
