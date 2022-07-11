@@ -115,9 +115,11 @@ M.incsearch = {
 local function match_all_render(state, input)
   vim.defer_fn(function()
 
-    local has_matches = state.total_matches > 0
-    local text_hl = has_matches and 'Normal' or 'WarningMsg'
-    local border_hl = has_matches and 'FloatBorder' or 'WarningMsg'
+    local has_matches = state.total_matches ~= nil and state.total_matches > 0
+    local has_no_matches = state.total_matches ~= nil and state.total_matches == 0
+
+    local text_hl   = has_no_matches and 'WarningMsg' or 'Normal'
+    local border_hl = has_no_matches and 'WarningMsg' or 'FloatBorder'
 
     input.border:set_text('top', function(width)
       return Line({
@@ -125,13 +127,16 @@ local function match_all_render(state, input)
       })
     end, 'left')
     input.border:set_text('bottom', function(width)
-      local text = has_matches and
-        fmt('%i/%i', state.current_index, state.total_matches) or
-        'No matches'
+      local line = Line()
 
-      return Line({
-        Text(_.truncate_text(text, width), text_hl)
-      })
+      if has_matches then
+        line:append(Text(fmt('%i/%i', state.current_index, state.total_matches), text_hl))
+      end
+      if has_no_matches then
+        line:append(Text('No matches', text_hl))
+      end
+
+      return line
     end, 'right')
 
     input.border:set_highlight(border_hl)
@@ -248,9 +253,10 @@ end
 
 M.match_all = {
   buf_leave = clear_matches,
-  mappings = function(state, input, map, win_exe)
+  on_mount = function(state, input, map, win_exe)
     map('<Tab>',   function() match_all_move(state, input, true) end)
     map('<S-Tab>', function() match_all_move(state, input, false) end)
+    match_all_render(state, input)
   end,
   on_change = function(value, state, input)
     state.query = utils.build_search(value, state)

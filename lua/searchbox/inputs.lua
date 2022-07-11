@@ -29,6 +29,8 @@ M.search = function(config, search_opts, handlers)
     query = nil,
     search_opts = search_opts,
     popup_opts = popup_opts,
+    total_matches = nil,
+    first_match = nil,
   }
 
   if search_opts.visual_mode then
@@ -80,7 +82,7 @@ M.search = function(config, search_opts, handlers)
   vim.api.nvim_buf_set_option(input.bufnr, 'filetype', 'SearchBox')
 
   input._prompt = search_opts.prompt
-  M.add_mappings(input, state, handlers.mappings)
+  M.add_mappings(input, state, handlers.on_mount)
 
   config.hooks.after_mount(input)
 
@@ -90,7 +92,7 @@ M.search = function(config, search_opts, handlers)
   end)
 end
 
-M.add_mappings = function(input, state, other_mappings)
+M.add_mappings = function(input, state, on_mount)
   local map = utils.create_map(input, false)
 
   if vim.fn.has('nvim-0.7') == 0 then
@@ -121,8 +123,8 @@ M.add_mappings = function(input, state, other_mappings)
 
   map('<M-.>', '<C-r>=getreg("/")<CR>')
 
-  if other_mappings ~= nil then
-    other_mappings(state, input, map, win_exe)
+  if on_mount ~= nil then
+    on_mount(state, input, map, win_exe)
   end
 end
 
