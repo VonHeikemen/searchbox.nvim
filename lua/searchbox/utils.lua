@@ -2,6 +2,8 @@ local config = require('searchbox.config')
 
 local M = {}
 local format = string.format
+local map = vim.tbl_map
+local filter = vim.tbl_filter
 
 M.hl_name         = 'SearchBoxMatch'
 M.hl_name_current = 'SearchBoxMatchCurrent'
@@ -42,13 +44,15 @@ M.build_search = function(value, state)
     if #value < 2 then
       return nil
     end
-    query = '\\v' ..
-      table.concat(
-        vim.tbl_map(
-          function(c) return vim.fn.escape(c, '\\') end,
-          vim.split(query, '')),
-        '.{-}'
-      )
+    local parts = filter(function(part) return part ~= '' end, vim.split(query, '%s+'))
+    local word_matchers = map(function(part)
+      local chars = vim.split(part, '')
+      local escaped_chars = map(function(c) return vim.fn.escape(c, '\\') end, chars)
+      return table.concat(escaped_chars, '[^ ]{-}')
+    end, parts)
+    local matcher = table.concat(word_matchers, '.{-}')
+
+    query = '\\v' .. matcher
   else
     query = '\\v' .. query
   end
