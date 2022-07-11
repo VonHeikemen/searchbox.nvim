@@ -50,8 +50,8 @@ M.search = function(config, search_opts, handlers)
     }
   end
 
-  local ref = { input = nil }
-  local input = Input(popup_opts, {
+  local input
+  input = Input(popup_opts, {
     prompt = search_opts.prompt,
     default_value = search_opts.default_value or '',
     on_close = function()
@@ -66,13 +66,13 @@ M.search = function(config, search_opts, handlers)
       vim.fn.histadd('search', query)
 
       state.on_done = config.hooks.on_done
-      handlers.on_submit(value, state, ref.input, popup_opts)
+      handlers.on_submit(value, state, input, popup_opts)
     end,
     on_change = function(value)
-      handlers.on_change(value, state, ref.input)
+      handlers.on_change(value, state, input)
     end,
   })
-  ref.input = input
+  input = input
 
   config.hooks.before_mount(input)
 

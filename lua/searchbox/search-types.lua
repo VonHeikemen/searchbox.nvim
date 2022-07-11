@@ -1,6 +1,9 @@
 local M = {}
 local utils = require('searchbox.utils')
 local Input = require('nui.input')
+local Line = require('nui.line')
+local Text = require('nui.text')
+local _ = require('nui.utils')._
 local fmt = string.format
 local highlight_text = utils.highlight_text
 local is_position_equal = utils.is_position_equal
@@ -36,9 +39,14 @@ local searchpos = function(state, flags)
   }
 end
 
-local function update_bottom_border(state, input, content)
+local function update_border(edge, align, input, content, highlight)
   vim.defer_fn(function()
-    input.border:set_text('bottom', content, 'right')
+    input.border:set_text(edge, function(width)
+      return Line({
+        Text(_.truncate_text(content, width), highlight or 'Normal')
+      })
+    end, align)
+    input.border:set_highlight(highlight or 'FloatBorder')
   end, 0)
 end
 
@@ -143,7 +151,8 @@ local function match_all_highlight(state, input)
       vim.fn.setpos('.', {0, cursor_pos[1], cursor_pos[2]})
       vim.api.nvim_win_set_cursor(state.winid, cursor_pos)
     end)
-    update_bottom_border(state, input, 'No matches')
+    update_border('top', 'left', input, 'Search', 'WarningMsg')
+    update_border('bottom', 'right', input, 'No matches', 'WarningMsg')
     return
   end
 
@@ -184,11 +193,13 @@ local function match_all_highlight(state, input)
     highlight_text(state.bufnr, pos, hl_name)
   end
 
-  update_bottom_border(state, input, fmt('%i/%i', current_index, results.total))
+  update_border('top', 'left', input, 'Search')
+  update_border('bottom', 'right', input, fmt('%i/%i', current_index, results.total))
 
   -- move to nearest match
   buf_call(state, function()
     move_cursor(state, state.first_match)
+    vim.cmd('normal! zv')
   end)
 
   state.current_cursor = state.first_match
@@ -214,6 +225,7 @@ local function match_all_move(state, input, forward)
 
   buf_call(state, function()
     move_cursor(state, current_cursor)
+    vim.cmd('normal! zv')
   end)
 
   state.current_cursor = current_cursor
@@ -237,20 +249,24 @@ M.match_all = {
     local opts = state.search_opts
 
     if state.total_matches == 0 then
-      local _, err = pcall(vim.cmd, '//')
-      utils.print_err(err)
+      utils.print_warn('No match found')
     end
 
     if opts.clear_matches then
       clear_matches(state)
     end
 
-    -- Make sure you land on the first match.
-    -- Y'all can blame netrw for this one.
-    vim.api.nvim_win_set_cursor(
-      state.winid,
-      {state.first_match[1], state.first_match[2] - 1}
-    )
+    if state.first_match then
+      -- Make sure you land on the first match.
+      -- Y'all can blame netrw for this one.
+      vim.api.nvim_win_set_cursor(
+        state.winid,
+        {state.first_match[1], state.first_match[2] - 1}
+      )
+      vim.cmd('normal! zv')
+    else
+      move_cursor(state, state.start_cursor)
+    end
 
     state.on_done(value, 'match_all')
   end,

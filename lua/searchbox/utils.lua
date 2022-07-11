@@ -99,6 +99,10 @@ M.print_err = function(err)
   vim.notify(msg, vim.log.levels.ERROR)
 end
 
+M.print_warn = function(msg)
+  vim.notify(msg, vim.log.levels.WARN)
+end
+
 M.highlight_text = function(bufnr, pos, hl_name)
   local h = function(line, col, offset)
     vim.api.nvim_buf_add_highlight(
