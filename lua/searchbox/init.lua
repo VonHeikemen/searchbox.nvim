@@ -12,7 +12,8 @@ local search_defaults = {
   visual_mode = false,
   title = false,
   prompt = ' ',
-  range = {-1, -1}
+  range = {-1, -1},
+  modifier = 'disabled'
 }
 
 local defaults = {
@@ -87,19 +88,21 @@ M.replace = function(config)
     M.setup({})
   end
 
-  local search_defaults = {
+  local default_config = {
     exact = false,
     title = false,
     visual_mode = false,
     prompt = ' ',
     confirm = 'off',
-    range = {-1, -1}
+    range = {-1, -1},
+    modifier = 'disabled'
   }
 
-  local search_opts = merge(search_defaults, config)
+  local search_opts = merge(default_config, config)
 
   if not utils.validate_confirm_mode(search_opts.confirm) then
-    error('(SearchBox replace) Invalid value for confirm argument')
+    local msg = "[SearchBox replace] Invalid value for 'confirm' argument"
+    vim.notify(msg, vim.log.levels.ERROR)
     return
   end
 
@@ -113,7 +116,7 @@ M.replace = function(config)
     }
   }
 
-  opts = utils.merge(user_opts, {popup = border_opts})
+  local opts = utils.merge(user_opts, {popup = border_opts})
   input.search(opts, search_opts, search_type.replace)
 end
 

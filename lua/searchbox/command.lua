@@ -30,6 +30,7 @@ local to_opts = {
   title = str,
   prompt = str,
   confirm = str,
+  modifier = str,
 }
 
 local parse_options = function(args)

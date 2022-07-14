@@ -122,6 +122,16 @@ You can tweak the behaviour of the search if you pass any of these properties:
 * `prompt`: Set input prompt.
 * `default_value`: Set initial value for the input.
 * `visual_mode`: Search only in the recently selected text.
+* `modifier`: Apply a "search modifier" at the beginning of the search pattern. It won't be visible in the search input. Possible values:
+  - `ignore-case`: Make the search case insensitive. Applies the pattern \c.
+  - `case-sensitive`: Make the search case sensitive. Applies the pattern \C.
+  - `no-magic`: Act as if the option `nomagic` is used. Applies the pattern \M.
+  - `magic`: Act as if the option `magic` is on. Applies the pattern \m.
+  - `very-magic`: Anything that isn't alphanumeric has a special meaning. Applies the pattern \v.
+  - `very-no-magic`: Only the backslash and the terminating character has special meaning. Applies the pattern \V.
+  - `plain`: Is an alias for `very-no-magic`.
+  - `disabled`: Is the default. Don't apply any modifier.
+  - `:`: It acts as a prefix. Use it to add your own modifier to the search. Example, `:\C\V` will make the search `very-no-magic` and also case sensitive. See `:help /magic` to know more about possible patterns.
 
 Other arguments are exclusive to one type of search.
 
@@ -196,7 +206,13 @@ Make the highlight of `match_all` go away after submit.
 Move to the nearest exact match without any fuss.
 
 ```vim
-:SearchBoxSimple exact=true<CR>
+:SearchBoxSimple modifier=case-sensitive exact=true<CR>
+```
+
+Add your own modifier to the search pattern. Here we apply `case-sensitive` and `very-no-magic` together. This makes it so we don't need to escape characters like `*` or `.`.
+
+```vim
+:SearchBoxIncSearch modifier=':\C\V'<CR>
 ```
 
 Start a search and replace.
@@ -211,7 +227,7 @@ Use the word under the cursor to begin search and replace. (Normal mode).
 :SearchBoxReplace -- <C-r>=expand('<cword>')<CR><CR>
 ```
 
-Look for the exact word under the cursor.
+Look for the word under the cursor.
 
 ```vim
 :SearchBoxMatchAll exact=true -- <C-r>=expand('<cword>')<CR><CR>

@@ -16,7 +16,7 @@ M.search = function(config, search_opts, handlers)
     line_prev = -1,
     use_range = false,
     start_cursor = {cursor[2], cursor[3]},
-    range = {start = {0, 0}, ends = {0, 0}}
+    range = {start = {0, 0}, ends = {0, 0}},
   }
 
   if search_opts.visual_mode then
@@ -36,6 +36,14 @@ M.search = function(config, search_opts, handlers)
         vim.fn.col({search_opts.range[2], '$'})
       },
     }
+  end
+
+  state.search_modifier = utils.get_modifier(search_opts.modifier)
+
+  if state.search_modifier == nil then
+    local msg = "[SearchBox] - Invalid value for 'modifier' argument"
+    vim.notify(msg:format(search_opts.modifier), vim.log.levels.WARN)
+    return
   end
 
   local title = utils.set_title(search_opts, config)
