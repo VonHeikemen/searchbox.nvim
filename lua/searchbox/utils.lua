@@ -12,7 +12,7 @@ end
 M.feedkeys = function(keys)
   vim.api.nvim_feedkeys(
     vim.api.nvim_replace_termcodes(keys, true, true, true),
-    'i',
+    'n',
     true
   )
 end
@@ -29,8 +29,8 @@ end
 M.create_map = function(input, force)
   return function(lhs, rhs)
     if type(rhs) == 'string' then
-      local keys = rhs
-      rhs = function() M.feedkeys(keys) end
+      vim.api.nvim_buf_set_keymap(input.bufnr, 'i', lhs, rhs, {noremap = true})
+      return
     end
 
     input:map('i', lhs, rhs, {noremap = true}, force)

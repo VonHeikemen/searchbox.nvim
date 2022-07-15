@@ -265,7 +265,7 @@ Confirm every match of search and replace.
 
 Inside the input you can use the following keymaps:
 
-* `Alt + .`: Writes the content of the last search in the input. This will include any special regex symbols. For example, if your last search was in visual mode `\%V` will be included as a prefix.
+* `Alt + .`: Writes the content of the last search in the input.
 * `Enter`: Submit input.
 * `Esc`: Closes input.
 * `Ctrl + c`: Close input.

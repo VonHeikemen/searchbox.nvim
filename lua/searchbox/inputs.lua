@@ -2,8 +2,13 @@ local M = {}
 
 local Input = require('nui.input')
 local event = require('nui.utils.autocmd').event
+local last_search = ''
 
 local utils = require('searchbox.utils')
+
+M.last_search = function()
+  return last_search
+end
 
 M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
@@ -63,6 +68,7 @@ M.search = function(config, search_opts, handlers)
       handlers.on_close(state)
     end,
     on_submit = function(value)
+      last_search = value
       local query = utils.build_search(value, search_opts, state)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
@@ -106,10 +112,6 @@ M.default_mappings = function(input, winid)
     map('<BS>', function() M.prompt_backspace(prompt_length) end)
   end
 
-  local bufmap = function(lhs, rhs)
-    vim.api.nvim_buf_set_keymap(input.bufnr, 'i', lhs, rhs, {noremap = true})
-  end
-
   local win_exe = function(cmd)
     vim.fn.win_execute(winid, string.format('exe "normal! %s"', cmd))
   end
@@ -117,14 +119,19 @@ M.default_mappings = function(input, winid)
   map('<C-c>', input.input_props.on_close)
   map('<Esc>', input.input_props.on_close)
 
-
   map('<C-y>', function() win_exe('\\<C-y>') end)
   map('<C-e>', function() win_exe('\\<C-e>') end)
 
   map('<C-f>', function() win_exe('\\<C-f>') end)
   map('<C-b>', function() win_exe('\\<C-b>') end)
 
-  bufmap('<M-.>', '<C-r>=getreg("/")<CR>')
+  vim.api.nvim_buf_set_keymap(
+    input.bufnr,
+    'i',
+    '<M-.>',
+    "<C-r>=v:lua.require'searchbox.inputs'.last_search()<cr>",
+    {noremap = true, silent = true}
+  )
 end
 
 -- Default backspace has inconsistent behavior, have to make our own (for now)
