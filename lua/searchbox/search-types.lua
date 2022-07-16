@@ -18,31 +18,7 @@ local print_err = function(err)
 end
 
 local highlight_text = function(bufnr, pos)
-  local h = function(line, col, offset)
-    vim.api.nvim_buf_add_highlight(
-      bufnr,
-      utils.hl_namespace,
-      utils.hl_name,
-      line - 1,
-      col - 1,
-      offset
-    )
-  end
-
-  if pos.one_line then
-    h(pos.line, pos.col, pos.end_col)
-  else
-    -- highlight first line
-    h(pos.line, pos.col, -1)
-
-    -- highlight last line
-    h(pos.end_line, 1, pos.end_col)
-
-    -- do the rest
-    for curr_line=pos.line + 1, pos.end_line - 1, 1 do
-      h(curr_line, 1, -1)
-    end
-  end
+  utils.highlight_text(bufnr, utils.hl_name, pos)
 end
 
 M.incsearch = {
@@ -311,7 +287,7 @@ M.replace = {
 
     input:mount()
     input._prompt = ' '
-    require('searchbox.inputs').default_mappings(input, state.winid)
+    require('searchbox.inputs').default_mappings(input, search_opts, state)
   end,
 }
 
@@ -322,16 +298,7 @@ M.confirm = function(value, state)
   local search_term = vim.fn.getreg('/')
 
   local next_match = function()
-    local pos = vim.fn.searchpos(search_term, 'cw')
-    local off = vim.fn.searchpos(search_term, 'cwe')
-
-    return {
-      line = pos[1],
-      col = pos[2],
-      end_line = off[1],
-      end_col = off[2],
-      one_line = pos[1] == off[1]
-    }
+    return utils.nearest_match(search_term, 'cw')
   end
 
   local replace = function(pos)
@@ -346,7 +313,10 @@ M.confirm = function(value, state)
 
     -- move cursor to the new offset column
     -- so next_match doesn't get stuck
-    vim.api.nvim_win_set_cursor(state.winid, {pos.line, (pos.col + value:len()) - 1})
+    vim.api.nvim_win_set_cursor(state.winid, {
+      pos.line,
+      (pos.col + value:len()) - 1
+    })
   end
 
   local cursor_pos = function(pos)

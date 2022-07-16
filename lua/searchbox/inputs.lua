@@ -2,12 +2,16 @@ local M = {}
 
 local Input = require('nui.input')
 local event = require('nui.utils.autocmd').event
-local last_search = ''
+
+M.state = {
+  last_search = '',
+  current_value = ''
+}
 
 local utils = require('searchbox.utils')
 
 M.last_search = function()
-  return last_search
+  return M.state.last_search
 end
 
 M.search = function(config, search_opts, handlers)
@@ -68,7 +72,7 @@ M.search = function(config, search_opts, handlers)
       handlers.on_close(state)
     end,
     on_submit = function(value)
-      last_search = value
+      M.state.last_search = value
       local query = utils.build_search(value, search_opts, state)
       vim.fn.setreg('/', query)
       vim.fn.histadd('search', query)
@@ -77,6 +81,7 @@ M.search = function(config, search_opts, handlers)
       handlers.on_submit(value, search_opts, state, popup_opts)
     end,
     on_change = function(value)
+      M.state.current_value = value
       handlers.on_change(value, search_opts, state)
     end,
   })
@@ -86,7 +91,7 @@ M.search = function(config, search_opts, handlers)
   input:mount()
 
   input._prompt = search_opts.prompt
-  M.default_mappings(input, state.winid)
+  M.default_mappings(input, search_opts, state)
 
   config.hooks.after_mount(input)
 
@@ -96,8 +101,10 @@ M.search = function(config, search_opts, handlers)
   end)
 end
 
-M.default_mappings = function(input, winid)
-  local map = utils.create_map(input, false)
+M.default_mappings = function(input, search_opts, state)
+  local bind = function(modes, lhs, rhs, noremap)
+    vim.keymap.set(modes, lhs, rhs, {noremap = noremap, buffer = input.bufnr})
+  end
 
   if vim.fn.has('nvim-0.7') == 0 then
     local prompt = input._prompt
@@ -109,29 +116,67 @@ M.default_mappings = function(input, winid)
       prompt_length = prompt:len()
     end
 
-    map('<BS>', function() M.prompt_backspace(prompt_length) end)
+    bind = function(modes, lhs, rhs, noremap)
+      for _, mode in ipairs(modes) do
+        input:map(mode, lhs, rhs, {noremap = noremap}, true)
+      end
+    end
+
+    bind('i', '<BS>', function() M.prompt_backspace(prompt_length) end, true)
   end
 
   local win_exe = function(cmd)
-    vim.fn.win_execute(winid, string.format('exe "normal! %s"', cmd))
+    vim.fn.win_execute(state.winid, string.format('exe "normal! %s"', cmd))
   end
 
-  map('<C-c>', input.input_props.on_close)
-  map('<Esc>', input.input_props.on_close)
+  local move = function(flags)
+    vim.api.nvim_buf_call(state.bufnr, function()
+      local match = utils.nearest_match(vim.fn.getreg('/'), flags)
 
-  map('<C-y>', function() win_exe('\\<C-y>') end)
-  map('<C-e>', function() win_exe('\\<C-e>') end)
+      vim.api.nvim_win_set_cursor(state.winid, {match.line, match.col})
+      vim.fn.setpos('.', {state.bufnr, match.line, match.col})
 
-  map('<C-f>', function() win_exe('\\<C-f>') end)
-  map('<C-b>', function() win_exe('\\<C-b>') end)
+      if search_opts._type ~= 'incsearch' then
+        return
+      end
+
+      vim.api.nvim_buf_clear_namespace(state.bufnr, utils.hl_namespace, 0, -1)
+      utils.highlight_text(state.bufnr, utils.hl_name, match)
+    end)
+  end
+
+  bind({'', 'i'}, '<Plug>(searchbox-close)', input.input_props.on_close, true)
+
+  bind({'', 'i'}, '<Plug>(searchbox-scroll-up)', function() win_exe('\\<C-y>') end, true)
+  bind({'', 'i'}, '<Plug>(searchbox-scroll-down)', function() win_exe('\\<C-e>') end, true)
+
+  bind({'', 'i'}, '<Plug>(searchbox-scroll-page-up)', function() win_exe('\\<C-b>') end, true)
+  bind({'', 'i'}, '<Plug>(searchbox-scroll-page-down)', function() win_exe('\\<C-f>') end, true)
+
+  bind({'', 'i'}, '<Plug>(searchbox-prev-match)', function() move('bw') end, true)
+  bind({'', 'i'}, '<Plug>(searchbox-next-match)', function() move('w') end, true)
 
   vim.api.nvim_buf_set_keymap(
     input.bufnr,
     'i',
-    '<M-.>',
+    '<Plug>(searchbox-last-search)',
     "<C-r>=v:lua.require'searchbox.inputs'.last_search()<cr>",
     {noremap = true, silent = true}
   )
+
+  bind({'i'}, '<C-c>', '<Plug>(searchbox-close)', false)
+  bind({'i'}, '<Esc>', '<Plug>(searchbox-close)', false)
+
+  bind({'i'}, '<C-y>', '<Plug>(searchbox-scroll-up)', false)
+  bind({'i'}, '<C-e>', '<Plug>(searchbox-scroll-down)', false)
+
+  bind({'i'}, '<C-b>', '<Plug>(searchbox-scroll-page-up)', false)
+  bind({'i'}, '<C-f>', '<Plug>(searchbox-scroll-page-down)', false)
+
+  bind({'i'}, '<C-g>', '<Plug>(searchbox-prev-match)', false)
+  bind({'i'}, '<C-l>', '<Plug>(searchbox-next-match)', false)
+
+  bind({'i'}, '<M-.>', '<Plug>(searchbox-last-search)', false)
 end
 
 -- Default backspace has inconsistent behavior, have to make our own (for now)

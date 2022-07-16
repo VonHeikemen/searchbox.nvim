@@ -238,6 +238,8 @@ Inside the input you can use the following keymaps:
     * `Ctrl + e`: Scroll down.
     * `Ctrl + b`: Scroll page up.
     * `Ctrl + f`: Scroll page down.
+    * `Ctrl + g`: Go to previous match.
+    * `Ctrl + l`: Go to next match.
 
 In the confirm menu (of search and replace):
     * `y`: Confirm replace.
@@ -358,6 +360,51 @@ hooks.on_done: ~
     When doing a search and replace, it gets executed after the last
     substitution takes place. In case the search was cancelled, the first
     argument is `nil` and the second argument is the type of search.
+
+==============================================================================
+Custom keymaps                                      *searchbox-custom-keymaps*
+
+You can only modify the keymaps after the input is created, means you should
+do it in the `after_mount` hook.
+
+These are the actions available in the input.
+
+    * <Plug>(searchbox-close)
+    * <Plug>(searchbox-scroll-up)
+    * <Plug>(searchbox-scroll-down)
+    * <Plug>(searchbox-scroll-page-up)
+    * <Plug>(searchbox-scroll-page-down)
+    * <Plug>(searchbox-prev-match)
+    * <Plug>(searchbox-next-match)
+    * <Plug>(searchbox-last-search)
+
+Here is an example. If you wanted to "add support" for normal mode.
+
+>
+  after_mount = function(input)
+    local opts = {buffer = input.bufnr}
+
+    -- Esc goes to normal mode
+    vim.keymap.set('i', '<Esc>', '<cmd>stopinsert<cr>', opts)
+
+    -- Close the input in normal mode
+    vim.keymap.set('n', '<Esc>', '<Plug>(searchbox-close)', opts)
+    vim.keymap.set('n', '<C-c>', '<Plug>(searchbox-close)', opts)
+  end
+<
+
+If you are using Neovim 0.6.1 or lower replace |vim.keymap.set()|
+with |nvim_buf_set_keymap()|.
+
+>
+  vim.api.nvim_buf_set_keymap(
+    input.bufnr,
+    'n',
+    '<Esc>',
+    '<Plug>(searchbox-close)',
+    {noremap = false}
+  )
+<
 
 ==============================================================================
 Examples                                                  *searchbox-examples*

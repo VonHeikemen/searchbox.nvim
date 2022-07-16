@@ -55,6 +55,7 @@ end
 
 M.incsearch = function(config)
   local search_opts = merge(search_defaults, config)
+  search_opts._type = 'incsearch'
 
   if not user_opts then
     M.setup({})
@@ -65,6 +66,7 @@ end
 
 M.match_all = function(config)
   local search_opts = merge(search_defaults, config)
+  search_opts._type = 'match_all'
 
   if not user_opts then
     M.setup({})
@@ -75,6 +77,7 @@ end
 
 M.simple = function(config)
   local search_opts = merge(search_defaults, config)
+  search_opts._type = 'simple'
 
   if not user_opts then
     M.setup({})
@@ -99,6 +102,7 @@ M.replace = function(config)
   }
 
   local search_opts = merge(default_config, config)
+  search_opts._type = 'match_all'
 
   if not utils.validate_confirm_mode(search_opts.confirm) then
     local msg = "[SearchBox replace] Invalid value for 'confirm' argument"

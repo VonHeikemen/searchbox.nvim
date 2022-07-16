@@ -83,6 +83,52 @@ M.build_search = function(value, opts, state)
   return query
 end
 
+M.nearest_match = function(search_term, flags)
+  local pos = vim.fn.searchpos(search_term, flags)
+  local off = vim.fn.searchpos(search_term, 'cne')
+
+  return {
+    line = pos[1],
+    col = pos[2],
+    end_line = off[1],
+    end_col = off[2],
+    one_line = pos[1] == off[1]
+  }
+end
+
+M.move_cursor = function(winid, pos)
+  vim.fn.setpos('.', {0, pos[1], pos[2]})
+  vim.api.nvim_win_set_cursor(winid, pos)
+end
+
+M.highlight_text = function(bufnr, hl_name, pos)
+  local h = function(line, col, offset)
+    vim.api.nvim_buf_add_highlight(
+      bufnr,
+      M.hl_namespace,
+      hl_name,
+      line - 1,
+      col - 1,
+      offset
+    )
+  end
+
+  if pos.one_line then
+    h(pos.line, pos.col, pos.end_col)
+  else
+    -- highlight first line
+    h(pos.line, pos.col, -1)
+
+    -- highlight last line
+    h(pos.end_line, 1, pos.end_col)
+
+    -- do the rest
+    for curr_line=pos.line + 1, pos.end_line - 1, 1 do
+      h(curr_line, 1, -1)
+    end
+  end
+end
+
 M.set_title = function(search_opts, user_opts)
   local ok, title = pcall(function()
     return user_opts.popup.border.text.top
