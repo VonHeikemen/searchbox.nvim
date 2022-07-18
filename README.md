@@ -303,10 +303,18 @@ The "native" confirm method:
 
 If you want to change anything in the `UI` or add a "hook" you can use `.setup()`.
 
-This are the defaults.
+This is the default configuration.
 
 ```lua
 require('searchbox').setup({
+  defaults = {
+    reverse = false,
+    exact = false,
+    prompt = ' ',
+    modifier = 'disabled',
+    confirm = 'off',
+    clear_matches = false,
+  },
   popup = {
     relative = 'win',
     position = {
@@ -316,7 +324,6 @@ require('searchbox').setup({
     size = 30,
     border = {
       style = 'rounded',
-      highlight = 'FloatBorder',
       text = {
         top = ' Search ',
         top_align = 'left',
@@ -339,6 +346,8 @@ require('searchbox').setup({
   }
 })
 ```
+
+- `defaults` is a "global config", allows you to set some properties for all inputs. So you don't have to declare them using the command api or the lua api.
 
 - `popup` is passed directly to `nui.popup`. You can check the valid keys in their documentation: [popup.options](https://github.com/MunifTanjim/nui.nvim/tree/main/lua/nui/popup#options)
 

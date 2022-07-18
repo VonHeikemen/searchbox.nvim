@@ -268,10 +268,18 @@ Configuration                                     *searchbox-general-settings*
 If you want to change anything in the `UI` or add a "hook"
 you can use `.setup()`.
 
-This are the defaults.
+This is the default configuration.
 
 >
   require('searchbox').setup({
+    defaults = {
+      reverse = false,
+      exact = false,
+      prompt = ' ',
+      modifier = 'disabled',
+      confirm = 'off',
+      clear_matches = false,
+    },
     popup = {
       relative = 'win',
       position = {
@@ -281,7 +289,6 @@ This are the defaults.
       size = 30,
       border = {
         style = 'rounded',
-        highlight = 'FloatBorder',
         text = {
           top = ' Search ',
           top_align = 'left',
@@ -304,6 +311,11 @@ This are the defaults.
     }
   })
 <
+                                                          *searchbox.defaults*
+defaults: ~
+    A "global config", allows you to set some properties for all inputs.
+    So you don't have to declare them using the command api or the lua api.
+
                                                              *searchbox.popup*
 popup options: ~
     They control the popup's settings. Accepts any valid key/value pair
