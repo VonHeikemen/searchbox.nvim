@@ -62,6 +62,14 @@ There is a command for each kind of search which can be used in a keybinding.
 
 * **Lua Bindings**
 
+If using neovim 0.7 or greater.
+
+```lua
+vim.keymap.set('n', '<leader>s', ':SearchBoxIncSearch<CR>')
+```
+
+If you have neovim 0.6.1 or lower.
+
 ```lua
 vim.api.nvim_set_keymap(
   'n',
@@ -92,12 +100,7 @@ In this mode the search area is limited to the range set by the selected text. S
 * Lua Bindings
 
 ```lua
-vim.api.nvim_set_keymap(
-  'x',
-  '<leader>s',
-  ':SearchBoxIncSearch visual_mode=true<CR>',
-  {noremap = true}
-)
+vim.keymap.set('x', '<leader>s', ':SearchBoxIncSearch visual_mode=true<CR>')
 ```
 
 * Vimscript Bindings
