@@ -117,6 +117,14 @@ default_value: ~
 visual_mode: ~
     Search only in the recently selected text.
 
+show_matches: ~
+    If set to `true` it'll show the number of matches in the input. If set
+    to a string the pattern `{total}` will be replaced with the number of
+    matches. If the pattern `{match}` is found it'll be replaced with the 
+    index of match under the cursor. The default format of the message
+    is `[{match}/{total}]`. But you can set it to something like this:
+    `show_matches='[M:{match} T:{total}]'`. 
+
 modifier: ~
     Apply a "search modifier" at the beginning of the search pattern. It won't
     be visible in the search input. Possible values:
@@ -279,6 +287,7 @@ This is the default configuration.
       modifier = 'disabled',
       confirm = 'off',
       clear_matches = false,
+      show_matches = false,
     },
     popup = {
       relative = 'win',

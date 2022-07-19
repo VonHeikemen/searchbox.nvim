@@ -14,6 +14,7 @@ local search_defaults = {
   title = false,
   visual_mode = false,
   range = {-1, -1},
+  show_matches = false
 }
 
 local defaults = {
@@ -46,17 +47,19 @@ local defaults = {
 local user_opts = nil
 
 local merge_config = function(opts)
+  local u = user_opts.defaults
   return vim.tbl_deep_extend(
     'force',
     {},
     search_defaults,
     {
-      reverse = user_opts.defaults.reverse,
-      exact = user_opts.defaults.exact,
-      prompt = user_opts.defaults.prompt,
-      modifier = user_opts.defaults.modifier,
-      clear_matches = user_opts.defaults.clear_matches,
-      confirm = user_opts.defaults.confirm
+      reverse = u.reverse,
+      exact = u.exact,
+      prompt = u.prompt,
+      modifier = u.modifier,
+      clear_matches = u.clear_matches,
+      confirm = u.confirm,
+      show_matches = u.show_matches
     },
     opts
   )

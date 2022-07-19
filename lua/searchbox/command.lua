@@ -14,6 +14,20 @@ local str = function(value)
   return value
 end
 
+local bool_or_str = function(value)
+  if value == '' then
+    return nil
+  end
+
+  local variants = {['true'] = true, ['false'] = false}
+
+  if variants[value] == nil then
+    return value
+  end
+
+  return variants[value]
+end
+
 local escape_space = function(value)
   if vim.endswith(value, '\\') then
     return value:sub(1, #value - 1) .. ' '
@@ -31,6 +45,7 @@ local to_opts = {
   prompt = str,
   confirm = str,
   modifier = str,
+  show_matches = bool_or_str
 }
 
 local parse_options = function(args)

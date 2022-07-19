@@ -28,11 +28,15 @@ M.incsearch = {
     state.on_done(nil, 'incsearch')
   end,
   on_submit = function(value, opts, state)
-    local res = vim.fn.search(vim.fn.getreg('/'), 'c')
+    if #value > 0 then
+      local res = vim.fn.search(vim.fn.getreg('/'), 'c')
 
-    if res == 0 then
-      local _, err = pcall(vim.cmd, '//')
-      print_err(err)
+      if res == 0 then
+        local _, err = pcall(vim.cmd, '//')
+        print_err(err)
+      end
+
+      value = nil
     end
 
     clear_matches(state)
@@ -42,12 +46,15 @@ M.incsearch = {
     utils.clear_matches(state.bufnr)
 
     if value == '' then
+      state.total_matches = '?'
+      state.search_count_index = '?'
       return
     end
 
     opts = opts or {}
     local search_flags = 'c'
     local query = utils.build_search(value, opts, state)
+    vim.fn.setreg('/', query)
 
     if opts.reverse then
       search_flags = 'bc'
@@ -67,6 +74,10 @@ M.incsearch = {
 
       local offset = vim.fn.searchpos(query, 'cne')
 
+      local results = vim.fn.searchcount({maxcount = -1})
+      state.total_matches = results.total
+      state.search_count_index = results.current
+
       return {
         line = pos[1],
         col = pos[2],
@@ -80,6 +91,8 @@ M.incsearch = {
     local no_match = pos.line == 0 and pos.col == 0
 
     if no_match then
+      state.total_matches = 0
+      state.search_count_index = 0
       return
     end
 
@@ -105,6 +118,10 @@ M.match_all = {
       print_err(err)
     end
 
+    if state.total_matches == '?' then
+      value = nil
+    end
+
     if opts.clear_matches then
       clear_matches(state)
     end
@@ -120,7 +137,11 @@ M.match_all = {
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
-    if value == '' then return end
+    if value == '' then
+      state.total_matches = '?'
+      state.search_count_index = '?'
+      return
+    end
 
     opts = opts or {}
     local query = utils.build_search(value, opts, state)
@@ -147,13 +168,15 @@ M.match_all = {
     local results = buf_call(state, function()
       local ok, res = pcall(vim.fn.searchcount, {maxcount = -1})
       if not ok then
-        return {total = 0}
+        return {total = 0, current = 0}
       end
 
       return res
     end)
 
     state.total_matches = results.total
+    state.search_count_index = results.current
+
     local cursor_pos = opts.visual_mode
       and state.range.start
       or state.start_cursor
@@ -203,6 +226,11 @@ M.simple = {
     state.on_done(nil, 'simple')
   end,
   on_submit = function(value, opts, state)
+    if value == '' then
+      state.on_done(nil, 'simple')
+      return
+    end
+
     local cmd = 'normal! n'
     if opts.reverse then
       cmd = 'normal! N'
@@ -215,7 +243,32 @@ M.simple = {
 
     state.on_done(value, 'simple')
   end,
-  on_change = noop
+  on_change = function(value, opts, state)
+    if not opts.show_matches then
+      return
+    end
+
+    if value == '' then
+      state.total_matches = '?'
+      state.search_count_index = '?'
+      return
+    end
+
+    buf_call(state, function()
+      local query = utils.build_search(value, opts, state)
+      vim.fn.setreg('/', query)
+
+      local ok, results = pcall(vim.fn.searchcount, {maxcount = -1})
+      if not ok then
+        state.total_matches = 0
+        state.search_count_index = 0
+        return
+      end
+
+      state.total_matches = results.total
+      state.search_count_index = results.current
+    end)
+  end
 }
 
 M.replace = {
@@ -226,6 +279,11 @@ M.replace = {
   end,
   on_change = M.match_all.on_change,
   on_submit = function(value, search_opts, state, popup_opts)
+    if value == '' then
+      state.on_done(nil, 'replace')
+      return
+    end
+
     if state.total_matches == 0 then
       local _, err = pcall(vim.cmd, '//')
       print_err(err)
@@ -242,6 +300,10 @@ M.replace = {
         }
       }
     }
+
+    if state.show_matches then
+      border.border.text.bottom = ''
+    end
 
     local replace_popup = utils.merge(popup_opts, border)
 
