@@ -47,6 +47,7 @@ local defaults = {
 local user_opts = nil
 
 local merge_config = function(opts)
+  opts = opts or {}
   local u = user_opts.defaults
   return vim.tbl_deep_extend(
     'force',
