@@ -50,7 +50,7 @@ There are four kinds of search:
 
 * `incsearch`: Highlights the nearest match of your query as you type.
 
-* `match_all`: Highlights all the matches in the buffer as you type. By default matches will stay highlighted after you submit your search. You can clear them with `:SearchBoxClear`. If you want the highlight to disappear after the input closes, add the `clear_matches` argument (more on this later).
+* `match_all`: Highlights all the matches in the buffer as you type. By default the highlights will disappear after you submit your search. If you want them to stay set the argument `clear_matches` to `false` (more on this later).
 
 * `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
 
@@ -171,7 +171,7 @@ Is worth mention that argument parsing is done manually inside the plugin. Compl
 Not being able to use whitespace freely makes it difficult to use `default_value` with this api, that's why it gets a special treatment. There is no `default_value` argument, instead everything that follows the `--` argument is considered part of the search term.
 
 ```vim
-:SearchBoxMatchAll title=Match clear_matches=true -- I want to search this<CR>
+:SearchBoxMatchAll title=Match clear_matches=false -- I want to search this<CR>
 ```
 
 In the example above `I want to search this` will become the initial value for the search input. This becomes useful when you want to use advance techniques to set the initial value of your search (I'll show you some examples later).
@@ -187,7 +187,7 @@ If you only going to set the initial value, meaning you're not going to use any 
 In this case you'll be using lua functions of the `searchbox` module instead of commands. The arguments can be provided as a lua table.
 
 ```vim
-:lua require('searchbox').match_all({title='Match All', clear_matches=true, default_value='I want to search this'})<CR>
+:lua require('searchbox').match_all({title='Match All', clear_matches=false, default_value='I want to search this'})<CR>
 ```
 
 ### Examples
@@ -198,10 +198,10 @@ Make a reverse search, like the default `?`:
 :SearchBoxIncSearch reverse=true<CR>
 ```
 
-Make the highlight of `match_all` go away after submit.
+Make the highlight of `match_all` stay after submit. They can be cleared manually with the command `:SearchboxClear`.
 
 ```vim
-:SearchBoxMatchAll clear_matches=true<CR>
+:SearchBoxMatchAll clear_matches=false<CR>
 ```
 
 Move to the nearest exact match without any fuss.
@@ -314,7 +314,7 @@ require('searchbox').setup({
     prompt = ' ',
     modifier = 'disabled',
     confirm = 'off',
-    clear_matches = false,
+    clear_matches = true,
     show_matches = false,
   },
   popup = {

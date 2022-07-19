@@ -14,7 +14,7 @@ local search_defaults = {
   title = false,
   visual_mode = false,
   range = {-1, -1},
-  show_matches = false
+  show_matches = false,
 }
 
 local defaults = {
@@ -91,6 +91,10 @@ M.match_all = function(config)
 
   local search_opts = merge_config(config)
   search_opts._type = 'match_all'
+
+  if search_opts.clear_matches == nil then
+    search_opts.clear_matches = true
+  end
 
   input.search(user_opts, search_opts, search_type.match_all)
 end

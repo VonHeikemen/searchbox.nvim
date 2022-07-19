@@ -1,7 +1,7 @@
 local M = {}
 local utils = require('searchbox.utils')
 local Input = require('nui.input')
-local fmt = string.format
+local noop = function() end
 
 local buf_call = function(state, fn)
   return vim.api.nvim_buf_call(state.bufnr, fn)
@@ -107,7 +107,7 @@ M.incsearch = {
 }
 
 M.match_all = {
-  buf_leave = clear_matches,
+  buf_leave = noop,
   on_close = function(state)
     clear_matches(state)
     state.on_done(nil, 'match_all')
@@ -137,6 +137,7 @@ M.match_all = {
   end,
   on_change = function(value, opts, state)
     utils.clear_matches(state.bufnr)
+
     if value == '' then
       state.total_matches = '?'
       state.search_count_index = '?'
@@ -219,7 +220,6 @@ M.match_all = {
   end
 }
 
-local noop = function() end
 M.simple = {
   buf_leave = noop,
   on_close = function(state)
