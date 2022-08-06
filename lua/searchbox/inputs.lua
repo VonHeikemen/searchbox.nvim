@@ -82,7 +82,7 @@ M.search = function(config, search_opts, handlers)
   local input = nil
 
   if search_opts.visual_mode and state.range.start[1] == 0 then
-    local msg = '[searchbox] Invalid range'
+    local msg = '[searchbox] Could not find any text selected.'
     vim.notify(msg, vim.log.levels.ERROR)
     return
   end
