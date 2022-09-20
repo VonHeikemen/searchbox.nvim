@@ -34,9 +34,8 @@ M.incsearch = {
       if res == 0 then
         local _, err = pcall(vim.cmd, '//')
         print_err(err)
+        value = nil
       end
-
-      value = nil
     end
 
     clear_matches(state)
