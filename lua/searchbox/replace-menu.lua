@@ -5,8 +5,8 @@ local event = require('nui.utils.autocmd').event
 local popup_options = {
   relative = 'cursor',
   position = {
-    row = 1,
-    col = 0,
+    row = 2,
+    col = 2,
   },
   border = {
     style = 'rounded',
@@ -36,7 +36,7 @@ end
 local get_row = function()
   local cursor_line = vim.fn.line('.')
   local first_line = vim.fn.line('w0')
-  local fold = {up = -8, down = 1}
+  local fold = {up = -7, down = 2}
 
   local height = vim.fn.winheight(0)
   local diff_start = cursor_line - first_line
