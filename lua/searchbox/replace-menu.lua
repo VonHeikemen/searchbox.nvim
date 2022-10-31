@@ -84,7 +84,7 @@ M.confirm_action = function(handlers)
 
   menu:mount()
 
-  function map(lhs, rhs)
+  local function map(lhs, rhs)
     vim.api.nvim_buf_set_keymap(
       menu.bufnr,
       'n',
