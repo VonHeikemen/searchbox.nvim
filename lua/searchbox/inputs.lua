@@ -58,6 +58,14 @@ M.search = function(config, search_opts, handlers)
     return
   end
 
+  if type(config.hooks.before_mount) == 'function' then
+    state.before_mount = config.hooks.before_mount
+  end
+
+  if type(config.hooks.after_mount) == 'function' then
+    state.after_mount = config.hooks.after_mount
+  end
+
   state.show_matches = false
   if search_opts.show_matches == true then
     search_opts.show_matches = '[{match}/{total}]'

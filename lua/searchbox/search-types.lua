@@ -346,9 +346,17 @@ M.replace = {
       end
     })
 
+    if state.before_mount then
+      state.before_mount(input)
+    end
+
     input:mount()
     input._prompt = ' '
     require('searchbox.inputs').default_mappings(input, search_opts, state)
+
+    if state.after_mount then
+      state.after_mount(input)
+    end
   end,
 }
 
