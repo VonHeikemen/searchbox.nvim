@@ -239,6 +239,10 @@ M.prompt_backspace = function(prompt)
 end
 
 s.update_matches = vim.schedule_wrap(function(input, search_opts, state)
+  if input.bufnr == nil then
+    return
+  end
+
   local total = state.total_matches
   local index = state.search_count_index
 
