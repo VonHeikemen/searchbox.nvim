@@ -28,6 +28,7 @@ end
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = function(state)
+    set_cursor(state.winid, state.start_cursor)
     clear_matches(state)
     state.on_done(nil, 'incsearch')
   end,
@@ -119,6 +120,7 @@ M.incsearch = {
 M.match_all = {
   buf_leave = noop,
   on_close = function(state)
+    set_cursor(state.winid, state.start_cursor)
     clear_matches(state)
     state.on_done(nil, 'match_all')
   end,
@@ -239,6 +241,7 @@ M.match_all = {
 M.simple = {
   buf_leave = noop,
   on_close = function(state)
+    set_cursor(state.winid, state.start_cursor)
     state.on_done(nil, 'simple')
   end,
   on_submit = function(value, opts, state)
@@ -304,6 +307,7 @@ M.simple = {
 M.replace = {
   buf_leave = clear_matches,
   on_close = function(state)
+    set_cursor(state.winid, state.start_cursor)
     clear_matches(state)
     state.on_done(nil, 'replace')
   end,
