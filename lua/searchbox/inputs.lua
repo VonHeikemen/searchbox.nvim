@@ -19,6 +19,7 @@ M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
 
   local state = {
+    cursor_moved = false,
     match_ns = utils.hl_namespace,
     winid = vim.fn.win_getid(),
     bufnr = vim.fn.bufnr(),
@@ -30,6 +31,8 @@ M.search = function(config, search_opts, handlers)
     total_matches = '?',
     search_count_index = '?',
   }
+
+  state.current_cursor = state.start_cursor
 
   if search_opts.visual_mode then
     state.range = {
@@ -99,8 +102,6 @@ M.search = function(config, search_opts, handlers)
     prompt = search_opts.prompt,
     default_value = search_opts.default_value or '',
     on_close = function()
-      vim.api.nvim_win_set_cursor(state.winid, state.start_cursor)
-
       state.on_done = config.hooks.on_done
       handlers.on_close(state)
     end,
@@ -110,6 +111,8 @@ M.search = function(config, search_opts, handlers)
         local query = utils.build_search(value, search_opts, state)
         vim.fn.setreg('/', query)
         vim.fn.histadd('search', query)
+      else
+        state.cursor_moved = false
       end
 
       state.on_done = config.hooks.on_done
@@ -170,16 +173,24 @@ M.default_mappings = function(input, search_opts, state)
 
   local move = function(flags)
     vim.api.nvim_buf_call(state.bufnr, function()
-      local match = utils.nearest_match(vim.fn.getreg('/'), flags)
+      local query = utils.build_search(M.state.current_value, search_opts, state)
+      local match = utils.nearest_match(query, flags)
+      if match.ok == false then
+        return
+      end
 
-      vim.api.nvim_win_set_cursor(state.winid, {match.line, match.col})
-      vim.fn.setpos('.', {state.bufnr, match.line, match.col})
+      state.cursor_moved = true
+      state.current_cursor = {match.line, match.col}
 
       if state.show_matches then
         local results = vim.fn.searchcount({recompute = 1})
         state.search_count_index = results.current
         s.update_matches(input, search_opts, state)
       end
+
+      local new_position = {state.current_cursor[1], state.current_cursor[2] - 1}
+      vim.api.nvim_win_set_cursor(state.winid, new_position)
+      vim.fn.setpos('.', {state.bufnr, match.line, match.col})
 
       if search_opts._type ~= 'incsearch' then
         return

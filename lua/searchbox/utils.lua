@@ -86,8 +86,10 @@ end
 M.nearest_match = function(search_term, flags)
   local pos = vim.fn.searchpos(search_term, flags)
   local off = vim.fn.searchpos(search_term, 'cne')
+  local empty = pos[1] == 0 and pos[2] == 0
 
   return {
+    ok = not empty,
     line = pos[1],
     col = pos[2],
     end_line = off[1],

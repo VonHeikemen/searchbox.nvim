@@ -21,6 +21,10 @@ local highlight_text = function(bufnr, pos)
   utils.highlight_text(bufnr, utils.hl_name, pos)
 end
 
+local set_cursor = function(winid, position)
+  vim.api.nvim_win_set_cursor(winid, {position[1], position[2] - 1})
+end
+
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = function(state)
@@ -29,13 +33,20 @@ M.incsearch = {
   end,
   on_submit = function(value, opts, state)
     if #value > 0 then
+      if state.cursor_moved then
+        set_cursor(state.winid, state.current_cursor)
+      end
+
       local res = vim.fn.search(vim.fn.getreg('/'), 'c')
 
       if res == 0 then
+        set_cursor(state.winid, state.start_cursor)
         local _, err = pcall(vim.cmd, '//')
         print_err(err)
         value = nil
       end
+    else
+      set_cursor(state.winid, state.start_cursor)
     end
 
     clear_matches(state)
@@ -112,25 +123,31 @@ M.match_all = {
     state.on_done(nil, 'match_all')
   end,
   on_submit = function(value, opts, state)
-    if state.total_matches == 0 then
-      local _, err = pcall(vim.cmd, '//')
-      print_err(err)
-    end
+    local total = state.total_matches
+    local has_match = type(total) == 'number' and total > 0
 
-    if state.total_matches == '?' then
-      value = nil
+    if has_match then
+      if state.cursor_moved then
+        set_cursor(state.winid, state.current_cursor)
+      else
+        set_cursor(state.winid, {state.first_match.line, state.first_match.col})
+      end
+    else
+      set_cursor(state.winid, state.start_cursor)
+
+      if total == 0 then
+        local _, err = pcall(vim.cmd, '//')
+        print_err(err)
+      end
+
+      if total == '?' then
+        value = nil
+      end
     end
 
     if opts.clear_matches then
       clear_matches(state)
     end
-
-    -- Make sure you land on the first match.
-    -- Y'all can blame netrw for this one.
-    vim.api.nvim_win_set_cursor(
-      state.winid,
-      {state.first_match.line, state.first_match.col - 1}
-    )
 
     state.on_done(value, 'match_all')
   end,
@@ -214,7 +231,7 @@ M.match_all = {
       local flags = opts.reverse and 'cb' or 'c'
       local nearest = searchpos(flags)
       state.first_match = nearest
-      vim.api.nvim_win_set_cursor(state.winid, {nearest.line, nearest.col})
+      vim.api.nvim_win_set_cursor(state.winid, {nearest.line, nearest.col - 1})
     end)
   end
 }
@@ -225,9 +242,23 @@ M.simple = {
     state.on_done(nil, 'simple')
   end,
   on_submit = function(value, opts, state)
+    local results = vim.fn.searchcount({recompute = 1})
+    local total = results.total
+
     if value == '' then
+      set_cursor(state.winid, state.start_cursor)
       state.on_done(nil, 'simple')
       return
+    end
+
+    if state.cursor_moved and total > 0 then
+      set_cursor(state.winid, state.current_cursor)
+      state.on_done(value, 'simple')
+      return
+    end
+
+    if total == 0 then
+      set_cursor(state.winid, state.start_cursor)
     end
 
     local cmd = 'normal! n'
