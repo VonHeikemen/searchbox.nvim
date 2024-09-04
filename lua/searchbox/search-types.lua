@@ -25,6 +25,12 @@ local set_cursor = function(winid, position)
   vim.api.nvim_win_set_cursor(winid, {position[1], position[2] - 1})
 end
 
+local save_query = function(value, search_opts, state)
+  local query = utils.build_search(value, search_opts, state)
+  vim.fn.setreg('/', query)
+  vim.fn.histadd('search', query)
+end
+
 M.incsearch = {
   buf_leave = clear_matches,
   on_close = function(state)
@@ -34,6 +40,7 @@ M.incsearch = {
   end,
   on_submit = function(value, opts, state)
     if #value > 0 then
+      save_query(value, opts, state)
       if state.cursor_moved then
         set_cursor(state.winid, state.current_cursor)
       end
@@ -61,6 +68,8 @@ M.incsearch = {
       state.search_count_index = '?'
       return
     end
+
+    state.current_value = value
 
     opts = opts or {}
     local search_flags = 'c'
@@ -128,6 +137,10 @@ M.match_all = {
     local total = state.total_matches
     local has_match = type(total) == 'number' and total > 0
 
+    if #value > 0 then
+      save_query(value, opts, state)
+    end
+
     if has_match then
       if state.cursor_moved then
         set_cursor(state.winid, state.current_cursor)
@@ -161,6 +174,8 @@ M.match_all = {
       state.search_count_index = '?'
       return
     end
+
+    state.current_value = value
 
     opts = opts or {}
     local query = utils.build_search(value, opts, state)
@@ -242,6 +257,11 @@ M.simple = {
   buf_leave = noop,
   on_close = function(state)
     set_cursor(state.winid, state.start_cursor)
+
+    if state.cursor_moved then
+      clear_matches(state)
+    end
+
     state.on_done(nil, 'simple')
   end,
   on_submit = function(value, opts, state)
@@ -252,6 +272,12 @@ M.simple = {
       set_cursor(state.winid, state.start_cursor)
       state.on_done(nil, 'simple')
       return
+    end
+
+    save_query(value, opts, state)
+
+    if state.cursor_moved then
+      clear_matches(state)
     end
 
     if state.cursor_moved and total > 0 then
@@ -277,6 +303,10 @@ M.simple = {
     state.on_done(value, 'simple')
   end,
   on_change = function(value, opts, state)
+    if state.cursor_moved then
+      clear_matches(state)
+    end
+
     if not opts.show_matches then
       return
     end
@@ -286,6 +316,8 @@ M.simple = {
       state.search_count_index = '?'
       return
     end
+
+    state.current_value = value
 
     buf_call(state, function()
       local query = utils.build_search(value, opts, state)
@@ -317,6 +349,8 @@ M.replace = {
       state.on_done(nil, 'replace')
       return
     end
+
+    save_query(value, search_opts, state)
 
     if state.total_matches == 0 then
       local _, err = pcall(vim.cmd, '//')
@@ -353,31 +387,7 @@ M.replace = {
       end,
       on_submit = function(value)
         clear_matches(state)
-        local flags = 'g'
-
-        if search_opts.confirm == 'native' then
-          flags = 'gc'
-        end
-
-        local screen = vim.opt.lines:get()
-        local enough_space = screen >= 14
-        local range = search_opts.visual_mode and "'<,'>s" or '%s'
-        local cmd = [[ %s//%s/%s ]]
-        local replacement = vim.fn.escape(value, '/')
-
-        local replace_cmd = cmd:format(range, replacement, flags)
-
-        if search_opts.confirm == 'menu' and enough_space then
-          return M.confirm(value, state)
-        end
-
-        -- change to native confirm if there isn't enough space
-        if search_opts.confirm == 'menu' then
-          replace_cmd = cmd:format(range, replacement, 'gc')
-        end
-
-        vim.cmd(replace_cmd)
-        state.on_done(value, 'replace')
+        M.replace_exec('replace', value, search_opts, state)
       end
     })
 
@@ -395,7 +405,74 @@ M.replace = {
   end,
 }
 
-M.confirm = function(value, state)
+M.replace_last = {
+  buf_leave = noop,
+  on_change = noop,
+  on_close = function(state)
+    set_cursor(state.winid, state.start_cursor)
+
+    if state.cursor_moved then
+      clear_matches(state)
+    end
+
+    state.on_done(nil, 'replace-last')
+  end,
+  on_submit = function(value, search_opts, state, popup_opts)
+    if state.cursor_moved then
+      clear_matches(state)
+    end
+
+    if value == '' then
+      state.on_done(nil, 'replace-last')
+      return
+    end
+
+    local ok, results = pcall(vim.fn.searchcount, {maxcount = -1})
+    if not ok then
+      state.on_done(nil, 'replace-last')
+      return
+    end
+
+    state.total_matches = results.total
+    M.replace_exec('replace-last', value, search_opts, state)
+  end
+}
+
+M.replace_exec = function(search_type, value, search_opts, state)
+  local flags = 'g'
+
+  if search_opts.confirm == 'native' then
+    flags = 'gc'
+  end
+
+  local screen = vim.opt.lines:get()
+  local enough_space = screen >= 14
+  local range = search_opts.visual_mode and "'<,'>s" or '%s'
+  local cmd = [[ %s//%s/%s ]]
+  local replacement = vim.fn.escape(value, '/')
+
+  local replace_cmd = cmd:format(range, replacement, flags)
+
+  if search_opts.confirm == 'menu' and enough_space then
+    return M.confirm(search_type, value, state)
+  end
+
+  -- change to native confirm if there isn't enough space
+  if search_opts.confirm == 'menu' then
+    replace_cmd = cmd:format(range, replacement, 'gc')
+  end
+
+  local ok, err = pcall(vim.cmd, replace_cmd)
+
+  if ok then
+    state.on_done(value, search_type)
+  else
+    print_err(err)
+    state.on_done(nil, search_type)
+  end
+end
+
+M.confirm = function(search_type, value, state)
   local fn = {}
   local match_index = 0
   local menu = require('searchbox.replace-menu')
@@ -466,7 +543,7 @@ M.confirm = function(value, state)
     end
 
     if stop or is_last then
-      state.on_done(value, 'replace')
+      state.on_done(value, search_type)
       return
     end
 
@@ -496,7 +573,7 @@ M.confirm = function(value, state)
     menu.confirm_action({
       on_close = function()
         clear_matches(state)
-        state.on_done(value, 'replace')
+        state.on_done(value, search_type)
       end,
       on_submit = function(item)
         fn.execute(item, pos)
@@ -504,7 +581,20 @@ M.confirm = function(value, state)
     })
   end
 
-  fn.confirm(state.first_match)
+  if state.first_match then
+    fn.confirm(state.first_match)
+    return
+  end
+
+  local match = next_match()
+  if match.ok then
+    fn.confirm(match)
+    return
+  end
+
+  local _, err = pcall(vim.cmd, '//')
+  print_err(err)
+  state.on_done(nil, search_type)
 end
 
 return M

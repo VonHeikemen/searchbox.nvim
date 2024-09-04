@@ -46,7 +46,7 @@ With `paq`:
 ```
 ### Types of search
 
-There are four kinds of search:
+There are five kinds of inputs:
 
 * `incsearch`: Highlights the nearest match of your query as you type.
 
@@ -55,6 +55,8 @@ There are four kinds of search:
 * `simple`: Doesn't do anything as you type. No highlight, no moving the cursor around in realtime. It's only purpose is to execute a search.
 
 * `replace`: Starts a multi-step input to search and replace. First input allows you to enter a pattern (search term). Second input will ask for the string that will replace the previous pattern.
+
+* `replace_last`: Acts like the second input of `replace`. The string you enter on this input will be used to replace the previous search query in your history.
 
 ## Usage
 
@@ -237,6 +239,12 @@ Look for the word under the cursor.
 :SearchBoxMatchAll exact=true -- <C-r>=expand('<cword>')<CR><CR>
 ```
 
+Search and replace, but use the most recent query as the search term. This basically acts like the second input of `SearchBoxReplace`.
+
+```vim
+:SearchBoxReplaceLast<CR>
+```
+
 Use the selected text as a search term. (Visual mode):
 
 > Due to limitations on the input, it can't handle newlines well. So whatever you have selected, must be one line. The escape sequence `\n` can be use in the search term but will not be interpreted on the second input of search and replace.
@@ -376,6 +384,7 @@ These are the actions available in the input.
 * `<Plug>(searchbox-prev-match)`
 * `<Plug>(searchbox-next-match)`
 * `<Plug>(searchbox-last-search)`
+* `<Plug>(searchbox-replace-step)`
 
 Here is an example. If you wanted to "add support" for normal mode, you would do this.
 

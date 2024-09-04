@@ -6,7 +6,6 @@ local event = require('nui.utils.autocmd').event
 
 M.state = {
   last_search = '',
-  current_value = ''
 }
 
 local utils = require('searchbox.utils')
@@ -19,6 +18,7 @@ M.search = function(config, search_opts, handlers)
   local cursor = vim.fn.getcurpos()
 
   local state = {
+    current_value = '',
     cursor_moved = false,
     match_ns = utils.hl_namespace,
     winid = vim.fn.win_getid(),
@@ -108,9 +108,6 @@ M.search = function(config, search_opts, handlers)
     on_submit = function(value)
       if #value > 0 then
         M.state.last_search = value
-        local query = utils.build_search(value, search_opts, state)
-        vim.fn.setreg('/', query)
-        vim.fn.histadd('search', query)
       else
         state.cursor_moved = false
       end
@@ -119,7 +116,6 @@ M.search = function(config, search_opts, handlers)
       handlers.on_submit(value, search_opts, state, popup_opts)
     end,
     on_change = function(value)
-      M.state.current_value = value
       handlers.on_change(value, search_opts, state)
 
       if state.show_matches then
@@ -173,7 +169,18 @@ M.default_mappings = function(input, search_opts, state)
 
   local move = function(flags)
     vim.api.nvim_buf_call(state.bufnr, function()
-      local query = utils.build_search(M.state.current_value, search_opts, state)
+      local term
+      if search_opts._type == 'replace-last' then
+        term = M.state.last_search
+      else
+        term = state.current_value
+      end
+
+      if term == '' then
+        return
+      end
+
+      local query = utils.build_search(term, search_opts, state)
       local match = utils.nearest_match(query, flags)
       if match.ok == false then
         return
@@ -192,16 +199,33 @@ M.default_mappings = function(input, search_opts, state)
       vim.api.nvim_win_set_cursor(state.winid, new_position)
       vim.fn.setpos('.', {state.bufnr, match.line, match.col})
 
-      if search_opts._type ~= 'incsearch' then
-        return
+      local allow_highlights = {'incsearch', 'replace-last', 'simple'}
+      if vim.tbl_contains(allow_highlights, search_opts._type) then
+        vim.api.nvim_buf_clear_namespace(state.bufnr, utils.hl_namespace, 0, -1)
+        utils.highlight_text(state.bufnr, utils.hl_name, match)
       end
+    end)
+  end
 
-      vim.api.nvim_buf_clear_namespace(state.bufnr, utils.hl_namespace, 0, -1)
-      utils.highlight_text(state.bufnr, utils.hl_name, match)
+  local replace_step = function()
+    if search_opts._type == 'replace-last' then
+      return
+    end
+
+    input.input_props.on_close()
+    M.state.last_search = state.current_value
+
+    local query = utils.build_search(state.current_value, search_opts, state)
+    vim.fn.setreg('/', query)
+    vim.fn.histadd('search', query)
+
+    vim.schedule(function()
+      require('searchbox').replace_last()
     end)
   end
 
   bind({'', 'i'}, '<Plug>(searchbox-close)', input.input_props.on_close, true)
+  bind({'', 'i'}, '<Plug>(searchbox-replace-step)', replace_step, true)
 
   bind({'', 'i'}, '<Plug>(searchbox-scroll-up)', function() win_exe('\\<C-y>') end, true)
   bind({'', 'i'}, '<Plug>(searchbox-scroll-down)', function() win_exe('\\<C-e>') end, true)

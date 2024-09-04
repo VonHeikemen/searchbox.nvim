@@ -143,5 +143,36 @@ M.replace = function(config)
   input.search(opts, search_opts, search_type.replace)
 end
 
+M.replace_last = function(config)
+  if not user_opts then
+    M.setup({})
+  end
+
+  local search_opts = merge_config(config)
+  search_opts._type = 'replace-last'
+
+  if search_opts.confirm == nil then
+    search_opts.confirm = 'off'
+  end
+
+  if search_opts.show_matches then
+    search_opts.show_matches = nil
+  end
+
+  if not utils.validate_confirm_mode(search_opts.confirm) then
+    local msg = "[SearchBox replace] Invalid value for 'confirm' argument"
+    vim.notify(msg, vim.log.levels.ERROR)
+    return
+  end
+
+  local opts = vim.deepcopy(user_opts)
+
+  if search_opts.title == false then
+    opts.popup.border.text.top = ' Replace with '
+  end
+
+  input.search(opts, search_opts, search_type.replace_last)
+end
+
 return M
 
