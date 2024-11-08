@@ -35,6 +35,8 @@ M.search = function(config, search_opts, handlers)
   state.current_cursor = state.start_cursor
 
   if search_opts.visual_mode then
+    -- always go nomal mode before getting visual text range
+    vim.cmd([[ execute "normal! \<ESC>" ]])
     state.range = {
       start = {vim.fn.line("'<"), vim.fn.col("'<")},
       ends = {vim.fn.line("'>"), vim.fn.col("'>")},
