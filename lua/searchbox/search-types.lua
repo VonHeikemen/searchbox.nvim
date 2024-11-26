@@ -17,8 +17,12 @@ local print_err = function(err)
   vim.notify(msg, vim.log.levels.ERROR)
 end
 
-local highlight_text = function(bufnr, pos)
-  utils.highlight_text(bufnr, utils.hl_name, pos)
+local default_highlight = function(bufnr, pos)
+  utils.highlight_text(utils.hl_default, utils.ns_default, bufnr, pos)
+end
+
+local current_match_highlight = function(bufnr, pos)
+  utils.highlight_text(utils.hl_current, utils.ns_current, bufnr, pos)
 end
 
 local set_cursor = function(winid, position)
@@ -117,7 +121,7 @@ M.incsearch = {
     end
 
     state.line = pos.line
-    highlight_text(state.bufnr, pos)
+    default_highlight(state.bufnr, pos)
 
     if state.line ~= state.line_prev then
       vim.api.nvim_win_set_cursor(state.winid, {state.line, pos.col - 1})
@@ -130,7 +134,7 @@ M.match_all = {
   buf_leave = noop,
   on_close = function(state)
     set_cursor(state.winid, state.start_cursor)
-    clear_matches(state)
+    utils.clear_highlights(state.bufnr)
     state.on_done(nil, 'match_all')
   end,
   on_submit = function(value, opts, state)
@@ -161,13 +165,13 @@ M.match_all = {
     end
 
     if opts.clear_matches then
-      clear_matches(state)
+      utils.clear_highlights(state.bufnr)
     end
 
     state.on_done(value, 'match_all')
   end,
   on_change = function(value, opts, state)
-    utils.clear_matches(state.bufnr)
+    utils.clear_highlights(state.bufnr)
 
     if value == '' then
       state.total_matches = '?'
@@ -239,7 +243,7 @@ M.match_all = {
         break
       end
 
-      highlight_text(state.bufnr, pos)
+      default_highlight(state.bufnr, pos)
     end
 
     -- move to nearest match
@@ -248,6 +252,7 @@ M.match_all = {
       local flags = opts.reverse and 'cb' or 'c'
       local nearest = searchpos(flags)
       state.first_match = nearest
+      current_match_highlight(state.bufnr, nearest)
       vim.api.nvim_win_set_cursor(state.winid, {nearest.line, nearest.col - 1})
     end)
   end
@@ -337,10 +342,12 @@ M.simple = {
 }
 
 M.replace = {
-  buf_leave = clear_matches,
+  buf_leave = function(state)
+    utils.clear_highlights(state.bufnr)
+  end,
   on_close = function(state)
     set_cursor(state.winid, state.start_cursor)
-    clear_matches(state)
+    utils.clear_highlights(state.bufnr)
     state.on_done(nil, 'replace')
   end,
   on_change = M.match_all.on_change,
@@ -379,14 +386,14 @@ M.replace = {
       prompt = ' ',
       default_value = '',
       on_close = function()
-        clear_matches(state)
+        utils.clear_highlights(state.bufnr)
         vim.defer_fn(function()
           search_opts.default_value = value
           require('searchbox').replace(search_opts)
         end, 3)
       end,
       on_submit = function(value)
-        clear_matches(state)
+        utils.clear_highlights(state.bufnr)
         M.replace_exec('replace', value, search_opts, state)
       end
     })
@@ -561,7 +568,7 @@ M.confirm = function(search_type, value, state)
 
   fn.confirm = function(pos)
     clear_matches(state)
-    highlight_text(state.bufnr, pos)
+    default_highlight(state.bufnr, pos)
 
     -- Make the confirm menu appear below the match
     if pos.one_line then

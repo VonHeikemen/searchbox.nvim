@@ -201,10 +201,16 @@ M.default_mappings = function(input, search_opts, state)
       vim.api.nvim_win_set_cursor(state.winid, new_position)
       vim.fn.setpos('.', {state.bufnr, match.line, match.col})
 
-      local allow_highlights = {'incsearch', 'replace-last', 'simple'}
-      if vim.tbl_contains(allow_highlights, search_opts._type) then
-        vim.api.nvim_buf_clear_namespace(state.bufnr, utils.hl_namespace, 0, -1)
-        utils.highlight_text(state.bufnr, utils.hl_name, match)
+      local default_highlight = {'incsearch', 'replace-last', 'simple'}
+      if vim.tbl_contains(default_highlight, search_opts._type) then
+        vim.api.nvim_buf_clear_namespace(state.bufnr, utils.ns_default, 0, -1)
+        utils.highlight_text(utils.hl_default, utils.ns_default, state.bufnr, match)
+      end
+
+      local current_highlight = {'replace', 'match_all'}
+      if vim.tbl_contains(current_highlight, search_opts._type) then
+        vim.api.nvim_buf_clear_namespace(state.bufnr, utils.ns_current, 0, -1)
+        utils.highlight_text(utils.hl_current, utils.ns_current, state.bufnr, match)
       end
     end)
   end

@@ -1,11 +1,19 @@
 local M = {}
 local format = string.format
 
-M.hl_name = 'SearchBoxMatch'
-M.hl_namespace = vim.api.nvim_create_namespace(M.hl_name)
+M.hl_default = 'SearchBoxMatch'
+M.hl_current = 'SearchBoxCurrentMatch'
+M.ns_default = vim.api.nvim_create_namespace(M.hl_default)
+M.ns_current = vim.api.nvim_create_namespace(M.hl_current)
 
 M.clear_matches = function(bufnr)
-  vim.api.nvim_buf_clear_namespace(bufnr, M.hl_namespace, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, M.ns_default, 0, -1)
+  vim.cmd('nohlsearch')
+end
+
+M.clear_highlights = function(bufnr)
+  vim.api.nvim_buf_clear_namespace(bufnr, M.ns_default, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, M.ns_current, 0, -1)
   vim.cmd('nohlsearch')
 end
 
@@ -103,11 +111,11 @@ M.move_cursor = function(winid, pos)
   vim.api.nvim_win_set_cursor(winid, pos)
 end
 
-M.highlight_text = function(bufnr, hl_name, pos)
+M.highlight_text = function(hl_name, hl_namespace, bufnr, pos)
   local h = function(line, col, offset)
     vim.api.nvim_buf_add_highlight(
       bufnr,
-      M.hl_namespace,
+      hl_namespace,
       hl_name,
       line - 1,
       col - 1,

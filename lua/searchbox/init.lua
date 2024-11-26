@@ -71,7 +71,7 @@ M.setup = function(config)
 end
 
 M.clear_matches = function()
-  utils.clear_matches(vim.fn.bufnr('%'))
+  utils.clear_highlights(vim.fn.bufnr('%'))
 end
 
 M.incsearch = function(config)
