@@ -1,11 +1,5 @@
 local M = {}
 
-local utils = require('searchbox.utils')
-local search_type = require('searchbox.search-types')
-local input = require('searchbox.inputs')
-
-local merge = utils.merge
-
 local search_defaults = {
   reverse = false,
   exact = false,
@@ -51,7 +45,6 @@ local merge_config = function(opts)
   local u = user_opts.defaults
   return vim.tbl_deep_extend(
     'force',
-    {},
     search_defaults,
     {
       reverse = u.reverse,
@@ -67,14 +60,17 @@ local merge_config = function(opts)
 end
 
 M.setup = function(config)
-  user_opts = merge(defaults, config)
+  user_opts = vim.tbl_deep_extend('force', defaults, config)
 end
 
 M.clear_matches = function()
-  utils.clear_highlights(vim.fn.bufnr('%'))
+  require('searchbox.utils').clear_highlights(vim.fn.bufnr('%'))
 end
 
 M.incsearch = function(config)
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
   if not user_opts then
     M.setup({})
   end
@@ -86,6 +82,9 @@ M.incsearch = function(config)
 end
 
 M.match_all = function(config)
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
   if not user_opts then
     M.setup({})
   end
@@ -101,6 +100,9 @@ M.match_all = function(config)
 end
 
 M.simple = function(config)
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
   if not user_opts then
     M.setup({})
   end
@@ -112,6 +114,10 @@ M.simple = function(config)
 end
 
 M.replace = function(config)
+  local utils = require('searchbox.utils')
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
   if not user_opts then
     M.setup({})
   end
@@ -144,6 +150,10 @@ M.replace = function(config)
 end
 
 M.replace_last = function(config)
+  local utils = require('searchbox.utils')
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
   if not user_opts then
     M.setup({})
   end
