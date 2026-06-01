@@ -162,7 +162,7 @@ M.default_mappings = function(input, search_opts, state)
       end
     end
 
-    bind('i', '<BS>', function() M.prompt_backspace(prompt_length) end, true)
+    bind({'i'}, '<BS>', function() M.prompt_backspace(prompt_length) end, true)
   end
 
   local win_exe = function(cmd)
