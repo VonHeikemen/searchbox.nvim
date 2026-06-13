@@ -1,5 +1,4 @@
-==============================================================================
-*searchbox*
+*searchbox.txt*
 
 Start your search from a more comfortable place, say the upper right corner?
 
@@ -43,36 +42,17 @@ Usage                                                  *searchbox-basic-usage*
 There is a command for each kind of search which can be used in a keybinding.
 
 * Lua Bindings
-
-If using neovim 0.7 or greater.
-
->
+>lua
   vim.keymap.set('n', '<leader>s', ':SearchBoxIncSearch<CR>')
 <
-
-If you have neovim 0.6.1 or lower.
-
->
-  vim.api.nvim_set_keymap(
-    'n',
-    '<leader>s',
-    ':SearchBoxIncSearch<CR>',
-    {noremap = true}
-  )
-<
-
 * Vimscript Bindings
-
->
+>vim
   nnoremap <leader>s :SearchBoxIncSearch<CR>
 <
-
 They are also exposed as lua functions, so the following is also valid.
-
->
+>lua
   :lua require('searchbox').incsearch()<CR>
 <
-
 Visual mode                                    *searchbox-visual-mode-support*
 
 To get proper support in visual mode you'll need to add `visual_mode=true`
@@ -82,23 +62,17 @@ In this mode the search area is limited to the range set by the selected text.
 Similar to the `substitute` command in this case `:'<,'>s/one/two/g`.
 
 * lua
-
->
+>lua
   vim.keymap.set('x', '<leader>s', ':SearchBoxIncSearch visual_mode=true<CR>')
-<
 
 * vimscript
-
->
+>vim
   xnoremap <leader>s :SearchBoxIncSearch visual_mode=true<CR>
 <
-
 When using the lua api add `<Esc>` at the beginning of the binding.
-
->
+>vim
   <Esc>:lua require('searchbox').incsearch({visual_mode = true})<CR>
 <
-
 ==============================================================================
 Search Options                                      *searchbox-search-options*
 
@@ -176,31 +150,23 @@ Command api                                            *searchbox-command-api*
 
 When using the command api the arguments are a space separated list of
 key/value pairs. The syntax for the arguments is this: `key=value`.
-
->
+>vim
   :SearchBoxMatchAll title=Match exact=true visual_mode=true<CR>
 <
-
 Because whitespace acts like a separator between the arguments if you want
 to use it as a value you need to escape it, or use a quoted argument. If you
 want to use `Match All` as a title, these are your options.
-
->
+>vim
   :SearchBoxMatchAll title="Match All"<CR>
 <
-
 Or
-
->
+>vim
   :SearchBoxMatchAll title='Match All'<CR>
 <
-
 Without quotes.
-
->
+>vim
   :SearchBoxMatchAll title=Match\ All<CR>
 <
-
 Note that escaping is specially funny inside a lua string, so you might need
 to use `\\`.
 
@@ -209,37 +175,30 @@ Complex escape sequences are not taken into account. Just `\"` and `\'` to
 avoid conflict in quoted arguments, and `\ ` to escape whitespace in a string
 argument without quotes.
 
-
 Not being able to use whitespace freely makes it difficult to use
 `default_value` with this api, that's why it gets a special treatment.
 There is no `default_value` argument, instead everything that follows
 the `--` argument is considered part of the search term.
-
->
+>vim
   :SearchBoxMatchAll title=Match clear_matches=false -- My search term<CR>
 <
-
 In the example above `My search term` will become the initial value for the
 search input. This becomes useful when you want to use advance techniques to
 set the initial value of your search (I'll show you some examples later).
 
 If you only going to set the initial value, meaning you're not going to use
 any of the other arguments, you can omit the `--`. This is valid, too.
-
->
+>vim
   :SearchBoxMatchAll My search term<CR>
 <
-
 ==============================================================================
 Lua api                                                    *searchbox-lua-api*
 
 In this case you'll be using lua functions of the `searchbox` module instead
 of commands. The arguments can be provided as a lua table.
-
->
+>vim
   :lua require('searchbox').match_all({title='Match All', clear_matches=false, default_value='My search term'})<CR>
 <
-
 ==============================================================================
 Default keymaps                                            *searchbox-keymaps*
 
@@ -283,8 +242,7 @@ If you want to change anything in the `UI` or add a "hook"
 you can use `.setup()`.
 
 This is the default configuration.
-
->
+>lua
   require('searchbox').setup({
     defaults = {
       reverse = false,
@@ -407,8 +365,7 @@ These are the actions available in the input.
     * <Plug>(searchbox-replace-step)
 
 Here is an example. If you wanted to "add support" for normal mode.
-
->
+>lua
   after_mount = function(input)
     local opts = {buffer = input.bufnr}
 
@@ -420,107 +377,69 @@ Here is an example. If you wanted to "add support" for normal mode.
     vim.keymap.set('n', '<C-c>', '<Plug>(searchbox-close)', opts)
   end
 <
-
-If you are using Neovim 0.6.1 or lower replace |vim.keymap.set()|
-with |nvim_buf_set_keymap()|.
-
->
-  vim.api.nvim_buf_set_keymap(
-    input.bufnr,
-    'n',
-    '<Esc>',
-    '<Plug>(searchbox-close)',
-    {noremap = false}
-  )
-<
-
 ==============================================================================
 Examples                                                  *searchbox-examples*
 
 Make a reverse search, like the default `?`:
-
->
+>vim
   :SearchBoxIncSearch reverse=true<CR>
 <
-
 Make the highlight of `match_all` stay after submit. They can be cleared
 manually with the command `:SearchboxClear`.
-
->
+>vim
   :SearchBoxMatchAll clear_matches=false<CR>
 <
-
 Move to the nearest exact match without any fuss.
-
->
+>vim
   :SearchBoxSimple modifier=case-sensitive exact=true<CR>
 <
-
 Add your own modifier to the search pattern. Here we apply `case-sensitive`
 and `very-no-magic` together. This makes it so we don't need to escape
 characters like `*` or `.`.
-
->
+>vim
   :SearchBoxIncSearch modifier=':\C\V'<CR>
 <
-
 Start a search and replace.
-
->
+>vim
   :SearchBoxReplace<CR>
 <
-
 Use the word under the cursor to begin search and replace. (Normal mode).
-
->
+>vim
   :SearchBoxReplace -- <C-r>=expand('<cword>')<CR><CR>
 <
-
 Look for the word under the cursor.
-
->
+>vim
   :SearchBoxMatchAll exact=true -- <C-r>=expand('<cword>')<CR><CR>
 <
-
 Search and replace, but use the most recent query as the search term.
 This basically acts like the second input of `SearchBoxReplace`.
-
->
+>vim
   :SearchBoxReplaceLast<CR>
 <
-
 Use the selected text as a search term. (Visual mode):
 
 Due to limitations on the input, it can't handle newlines well. So whatever
 you have selected, must be one line. The escape sequence `\n` can be use in
 the search term but will not be interpreted on the second input of search
 and replace.
-
->
+>vim
   y:SearchBoxReplace -- <C-r>"<CR>
 <
-
 Search and replace within the range of the selected text, and look for an
 exact match. (Visual mode)
-
->
+>vim
   :SearchBoxReplace exact=true visual_mode=true<CR>
 <
-
 Confirm every match of search and replace
 
-- Normal mode:
-
->
+* Normal mode
+>vim
   :SearchBoxReplace confirm=menu<CR>
 <
-
-- Visual mode:
-
->
+* Visual mode
+>vim
   :SearchBoxReplace confirm=menu visual_mode=true<CR>
 <
-
 ==============================================================================
 Caveats                                                    *searchbox-caveats*
 
@@ -531,5 +450,6 @@ built-in search (`/` and  `?`).
 Support                                                   *searchbox-donation*
 
 If you find this tool useful and want to support my efforts, consider
-leaving a tip in https://www.buymeacoffee.com/vonheikemen
+leaving a tip in https://ko-fi.com/vonheikemen
 
+vim:tw=78:ft=help:norl:

@@ -10,7 +10,7 @@ Here's demo of search and replace component, and also *match_all* search.
 
 ## Getting Started
 
-Make sure you have [Neovim v0.5.1](https://github.com/neovim/neovim/releases/tag/v0.5.1) or greater.
+Neovim `v0.5.1` is the minimum version required. `v0.7` or greater is recommended.
 
 ### Dependencies
 
@@ -27,23 +27,24 @@ Plug 'MunifTanjim/nui.nvim'
 Plug 'VonHeikemen/searchbox.nvim'
 ```
 
-With `packer`:
+With `mini.deps`:
 
 ```lua
-use {
-  'VonHeikemen/searchbox.nvim',
-  requires = {
-    {'MunifTanjim/nui.nvim'}
-  }
-}
+MiniDeps.add({
+  source = 'VonHeikemen/searchbox.nvim',
+  depends = {'MunifTanjim/nui.nvim'}
+})
 ```
 
-With `paq`:
+With `vim.pack`:
 
 ```lua
-'VonHeikemen/searchbox.nvim';
-'MunifTanjim/nui.nvim';
+vim.pack.add({
+  'https://github.com/MunifTanjim/nui.nvim',
+  'https://github.com/VonHeikemen/searchbox.nvim',
+})
 ```
+
 ### Types of search
 
 There are five kinds of inputs:
@@ -64,21 +65,8 @@ There is a command for each kind of search which can be used in a keybinding.
 
 * **Lua Bindings**
 
-If using neovim 0.7 or greater.
-
 ```lua
 vim.keymap.set('n', '<leader>s', ':SearchBoxIncSearch<CR>')
-```
-
-If you have neovim 0.6.1 or lower.
-
-```lua
-vim.api.nvim_set_keymap(
-  'n',
-  '<leader>s',
-  ':SearchBoxIncSearch<CR>',
-  {noremap = true}
-)
 ```
 
 * **Vimscript Bindings**
@@ -401,11 +389,6 @@ after_mount = function(input)
 end
 ```
 
-If you are using Neovim 0.6.1 or lower replace `vim.keymap.set` with `vim.api.nvim_buf_set_keymap`.
-
-```lua
-vim.api.nvim_buf_set_keymap(input.bufnr, 'n', '<Esc>', '<Plug>(searchbox-close)', {noremap = false})
-```
 
 ## Caveats
 
@@ -423,7 +406,7 @@ If you want to improve the UI it will be better if you contribute to [nui.nvim](
 
 ## Support
 
-If you find this tool useful and want to support my efforts, [buy me a coffee ☕](https://www.buymeacoffee.com/vonheikemen).
+If you find this useful and want to support my efforts, you can donate in [ko-fi.com/vonheikemen](https://ko-fi.com/vonheikemen).
 
-[![buy me a coffee](https://res.cloudinary.com/vonheikemen/image/upload/v1618466522/buy-me-coffee_ah0uzh.png)](https://www.buymeacoffee.com/vonheikemen)
+[![buy me a coffee](https://res.cloudinary.com/vonheikemen/image/upload/v1726766343/gzu1l1mx3ou7jmp0tkvt.webp)](https://ko-fi.com/vonheikemen)
 
