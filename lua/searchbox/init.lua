@@ -248,6 +248,7 @@ M.grep = function(config)
   local search_opts = merge_config(config)
   search_opts._type = 'grep'
   search_opts.grep = user_opts.grep_options
+  search_opts.show_matches = ''
 
   if type(search_opts.modifier) == 'string'
     and search_opts.modifier:sub(1, 1) == '-'
