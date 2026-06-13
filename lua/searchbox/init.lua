@@ -35,6 +35,13 @@ local defaults = {
     before_mount = function() end,
     after_mount = function() end,
     on_done = function() end,
+  },
+  grep_options = {
+    executable = 'grep',
+    flags = '-rn',
+    show_progress = 'popup',
+    quickfix_window = true,
+    quickfix_format = '%f:%l:%m,%f:%l%m,%f  %l%m'
   }
 }
 
@@ -65,6 +72,44 @@ end
 
 M.clear_matches = function()
   require('searchbox.utils').clear_highlights(vim.fn.bufnr('%'))
+end
+
+M.grep_kill = function(signal)
+  local state = require('searchbox.inputs').state
+  if state.grep_pid == 0 then
+    return
+  end
+
+  if signal == nil or signal == '' then
+    signal = 'sigterm'
+  end
+
+  pcall(function()
+    if state.grep_popup == nil then
+      return
+    end
+
+    state.grep_popup:unmount() 
+    state.grep_popup = nil
+  end)
+
+  local uv = vim.uv or vim.loop
+  local ok, err_msg = pcall(function() 
+    local result = uv.kill(state.grep_pid, signal)
+    if result ~= 0 then
+      local msg = '[SearchBox grep] failed to kill process with pid %s'
+      vim.notify(msg:format(state.grep_pid), vim.log.levels.WARN)
+      return
+    end
+
+    state.grep_pid = 0
+    vim.notify('[SearchBox grep] Search canceled')
+  end)
+
+  if not ok then
+    local msg = '[SearchBox grep] %s'
+    vim.notify(msg:format(err_msg), vim.log.levels.WARN)
+  end
 end
 
 M.incsearch = function(config)
@@ -182,6 +227,41 @@ M.replace_last = function(config)
   end
 
   input.search(opts, search_opts, search_type.replace_last)
+end
+
+M.grep = function(config)
+  local utils = require('searchbox.utils')
+  local input = require('searchbox.inputs')
+  local search_type = require('searchbox.search-types')
+
+  if not user_opts then
+    M.setup({})
+  end
+
+  local ok, err_msg = utils.validate_grep(user_opts.grep_options)
+  if not ok then
+    local msg = string.format('[SearchBox grep] %s', err_msg)
+    vim.notify(msg, vim.log.levels.WARN)
+    return
+  end
+
+  local search_opts = merge_config(config)
+  search_opts._type = 'grep'
+  search_opts.grep = user_opts.grep_options
+
+  if type(search_opts.modifier) == 'string'
+    and search_opts.modifier:sub(1, 1) == '-'
+  then
+    search_opts.grep_modifier = vim.split(search_opts.modifier, ' ')
+    search_opts.modifier = 'disabled'
+  end
+
+  local border_opts = {
+    border = {text = {top = ' Grep '}}
+  }
+
+  local opts = utils.merge(user_opts, {popup = border_opts})
+  input.search(opts, search_opts, search_type.grep)
 end
 
 return M

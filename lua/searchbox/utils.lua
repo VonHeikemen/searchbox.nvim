@@ -172,5 +172,124 @@ M.validate_confirm_mode = function(value)
   return value == 'menu' or value == 'native' or value == 'off'
 end
 
+M.validate_grep = function(opts)
+  if type(opts) ~= 'table' then
+    return false, 'grep_options is must be a lua table'
+  end
+  
+  if type(opts.executable) ~= 'string' then
+    return false, 'Must provide grep executable'
+  end
+
+  if type(opts.quickfix_format) ~= 'string' then
+    return false, 'Must provide a format string to parse the quickfix list'
+  end
+
+  if opts.show_progress == nil then
+    opts.show_progress = 'disabled'
+  end
+
+  if type(opts.show_progress) ~= 'string' then
+    return false, 'The option "show_progress" must be a string'
+  end
+
+  local valid_show_progress = {'popup', 'echo', 'disabled'}
+  if not vim.tbl_contains(valid_show_progress, opts.show_progress) then
+    local msg = string.format(
+      '"%s" is not a valid setting for grep show_progress. Possible values include: %s',
+      opts.show_progress,
+      table.concat(valid_show_progress, ', ')
+    )
+
+    return false, msg
+  end
+
+  if type(opts.flags) == 'string' then
+    opts.flags = vim.split(opts.flags, ' ')
+  end
+
+  return true
+end
+
+M.uv_spawn = function(cmd, args, handlers)
+  local uv = vim.uv or vim.loop
+  local stdout = uv.new_pipe(false)
+  local stderr = uv.new_pipe(false)
+  local stderr_data = {}
+  local proc
+
+  local spawn_opts = {
+    args = args,
+    hide = true,
+    stdio = {nil, stdout, stderr}
+  }
+
+  local exit_handler = function(code, signal)
+    if proc and not proc:is_closing() then
+      proc:close()
+    end
+
+    local check = uv.new_check()
+    check:start(function()
+      for _, h in ipairs({stdout, stderr}) do
+        if not h:is_closing() then
+          return
+        end
+      end
+      check:stop()
+      check:close()
+      
+      handlers.on_exit({
+        code = code,
+        signal = signal,
+        stderr = stderr_data
+      })
+    end)
+  end
+
+  local error_handler = function()
+    local handles = {proc, stdout, stderr}
+    for _, h in ipairs(handles) do
+      if h and not h:is_closing() then
+        h:close()
+      end
+    end
+  end
+
+  proc, pid = uv.spawn(cmd, spawn_opts, exit_handler, error_handler)
+
+  stdout:read_start(function(err, chunk)
+    if err then
+      error(err)
+    end
+
+    if chunk == nil then
+      stdout:read_stop()
+      stdout:close()
+      return
+    end
+
+    handlers.on_data(chunk)
+  end)
+
+  stderr:read_start(function(err, chunk)
+    if err then
+      error(err)
+    end
+
+    if chunk == nil then
+      stderr:read_stop()
+      stderr:close()
+      return
+    end
+
+    stderr_data[#stderr_data + 1] = chunk:gsub('\r\n', '\n')
+  end)
+
+  if pid then
+    return pid
+  end
+end
+
 return M
 

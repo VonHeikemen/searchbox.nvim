@@ -604,5 +604,197 @@ M.confirm = function(search_type, value, state)
   state.on_done(nil, search_type)
 end
 
+M.grep = {
+  buf_leave = noop,
+  on_change = noop,
+  on_close = function(state)
+    state.on_done(nil, 'grep')
+  end,
+  on_submit = function(value, opts, state, popup_opts)
+    local query
+    local popup
+    local args = {}
+    local grep = opts.grep
+    local query_flags = value:sub(1, 1) == '-'
+
+    local input_state = require('searchbox.inputs').state
+
+    if type(grep.flags) == 'table' then
+      vim.list_extend(args, grep.flags)
+    end
+
+    if type(opts.grep_modifier) == 'table' then
+      vim.list_extend(args, opts.grep_modifier)
+    end
+
+    if query_flags then
+      local parts = vim.split(value, ' -- ')
+      local flags = vim.split(parts[1], ' ')
+      if parts[2] and flags[#flags] == '-' then
+        flags[#flags] = nil
+      end
+
+      vim.list_extend(args, flags)
+      if parts[2] then
+        query = parts[2]
+        vim.list_extend(args, {query})
+      else
+        query = args[#args]
+      end
+    else
+      query = value
+      vim.list_extend(args, {value})
+    end
+
+    input_state.last_search = query
+
+    local matches = 0
+    local output = {}
+    local on_done = function(result)
+      pcall(function()
+        if popup == nil then
+          return
+        end
+
+        popup:unmount()
+        input_state.grep_popup = nil
+      end)
+
+      input_state.grep_pid = 0
+      local ok = result.code == 0
+      if not ok then
+        if #result.stderr > 0 then
+          vim.notify(table.concat(result.stderr), vim.log.levels.ERROR)
+        end
+
+        state.on_done(nil, 'grep')
+        return
+      end
+
+      if #output == 0 then
+        state.on_done(nil, 'grep')
+        return
+      end
+
+      output = table.concat(output)
+      local lines = {}
+      for l in vim.gsplit(output, '\n') do
+        lines[#lines + 1] = l
+      end
+
+      if lines[#lines] == '' then
+        lines[#lines] = nil
+      end
+
+      vim.fn.setqflist({}, ' ', {
+        title = 'Grep: ' .. query,
+        lines = lines,
+        efm = grep.quickfix_format
+      })
+
+      if grep.quickfix_window then
+        vim.cmd('copen')
+      end
+
+      state.on_done(query, 'grep')
+    end
+
+    local progress_popup = {
+      relative = popup_opts.relative,
+      position = popup_opts.position,
+      border = popup_opts.border,
+      win_options = popup_opts.win_options,
+      size = {
+        width = 30,
+        height = 1
+      },
+      buf_options = {
+        modifiable = true,
+        readonly = false,
+      },
+    }
+
+    local progress_update = function() end
+    if grep.show_progress == 'popup' then
+      local border_style = vim.tbl_get(popup_opts, 'border', 'style')
+      if progress_popup.border and border_style then
+        progress_popup.border.text = {
+          top = ' Grep progress ',
+          top_align = 'left',
+        }
+      end
+
+      popup = require('nui.popup')(progress_popup)
+      progress_update = function()
+        if popup == nil then
+          return
+        end
+
+        pcall(function()
+          local msg = ' %s results found'
+          vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, {msg:format(matches)})
+        end)
+      end
+    elseif grep.show_progress == 'echo' then
+      progress_update = function()
+        local msg = '[SearchBox grep] %s results found'
+        vim.api.nvim_echo({{msg:format(matches), 'MoreMsg'}}, false, {})
+      end
+    end
+
+    local spawn_handlers = {
+      on_data = function(chunk)
+        local substr
+
+        chunk = chunk:gsub('\r\n', '\n')
+        output[#output + 1] = chunk
+
+        local nl = chunk:find('\n')
+        if nl then
+          substr = chunk:sub(nl + 1)
+        else
+          matches = matches + 1
+          vim.schedule(progress_update)
+          return
+        end
+
+        while nl do
+          local i = substr:find('\n')
+          if i == nil then
+            matches = matches + 1
+            break
+          end
+
+          nl = i
+          matches = matches + 1
+          substr = substr:sub(nl + 1)
+        end
+        vim.schedule(progress_update)
+      end,
+      on_exit = function(result)
+        vim.defer_fn(function() on_done(result) end, 1)
+      end,
+    }
+
+    local pid = utils.uv_spawn(grep.executable, args, spawn_handlers)
+    if pid == nil then
+      local msg = "[SearchBox grep] Failed to execute '%s'"
+      vim.notify(msg:format(grep.executable), vim.log.levels.ERROR)
+      return
+    end
+
+    input_state.grep_pid = pid
+
+    if popup then
+      popup:mount()
+      input_state.grep_popup = popup
+      vim.api.nvim_buf_set_lines(popup.bufnr, 0, 1, false, {' Searching...'})
+    elseif grep.show_progress == 'echo' then
+      local msg = '[SearchBox grep] Searching %s'
+      vim.api.nvim_echo({{msg:format(query), 'MoreMsg'}}, true, {})
+    end
+  end,
+}
+
 return M
 

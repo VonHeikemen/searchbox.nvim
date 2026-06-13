@@ -117,7 +117,16 @@ local parse_input = function(input)
       arg = section:sub(1, section_end)
     end
 
-    local split = vim.split(arg, '=')
+    local delimeter = arg:find('=')
+    local split
+    if delimeter then
+      split = {
+        arg:sub(1, delimeter - 1),
+        arg:sub(delimeter + 1)
+      }
+    else
+      split = {arg}
+    end
 
     -- User said stop. We stop.
     if prev_arg == nil and split[2] == nil and split[1] == '--' then
@@ -126,17 +135,13 @@ local parse_input = function(input)
     end
 
     -- This is an actual argument `key=val`
-    if #split == 2 then
+    if delimeter and split[2] then
       prev_arg = nil
 
       -- Are we dealing with a quoted argument?
       local first_char = split[2]:sub(1, 1)
       if first_char == "'" or first_char == '"' then
-        local res = quoted_arg(
-          split[1] .. '=' .. first_char,
-          input,
-          first_char
-        )
+        local res = quoted_arg(split[1] .. '=' .. first_char, input, first_char)
         cursor = res[1] + 2
         opts[split[1]] = res[2]
       else
@@ -169,7 +174,7 @@ local parse_input = function(input)
     if is_last then
       break
     end
-
+    -- end while
   end
 
   return opts

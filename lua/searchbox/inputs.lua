@@ -6,6 +6,7 @@ local event = require('nui.utils.autocmd').event
 
 M.state = {
   last_search = '',
+  grep_pid = 0,
 }
 
 local utils = require('searchbox.utils')

@@ -13,7 +13,7 @@ process more intuitive.
 ==============================================================================
 Search Types                                          *searchbox-search-types*
 
-There are five kinds of inputs:
+There are six kinds of inputs:
 
 incsearch: ~
     Highlights the nearest match of your query as you type.
@@ -35,6 +35,12 @@ replace: ~
 replace_last: ~
     Acts like the second input of `replace`. The string you enter on this
     input will be used to replace the previous search query in your history.
+
+grep: ~
+  It spawns grep as a background process and stores the output in a quickfix
+  list. Note any grep-like program can be used instead of the ol' grep, as
+  long as you configure the executable and the pattern to parse the output
+  into the quickfix list.
 
 ==============================================================================
 Usage                                                  *searchbox-basic-usage*
@@ -271,6 +277,13 @@ This is the default configuration.
         winhighlight = 'Normal:Normal,FloatBorder:FloatBorder',
       },
     },
+    grep_options = {
+      executable = 'grep',
+      flags = '-rn',
+      show_progress = 'popup',
+      quickfix_window = true,
+      quickfix_format = '%f:%l:%m,%f:%l%m,%f  %l%m'
+    },
     hooks = {
       before_mount = function(input)
         -- code
@@ -345,6 +358,33 @@ hooks.on_done: ~
     When doing a search and replace, it gets executed after the last
     substitution takes place. In case the search was cancelled, the first
     argument is `nil` and the second argument is the type of search.
+
+                                                      *searchbox.grep_options*
+grep_options: ~
+    Are the settings for the grep input.
+
+                                           *searchbox.grep_options.executable*
+grep_options.executable: ~
+    Is the external program that will execute the search.
+
+                                                *searchbox.grep_options.flags*
+grep_options.flags: ~
+    Can be string or list of strings, it will be provided to the program as
+    extra arguments before the search term.
+
+                                        *searchbox.grep_options.show_progress*
+grep_options.show_progress: ~
+    Display the number of matches found during search. It can have three
+    possible values: popup, echo or disabled. 
+
+                                      *searchbox.grep_options.quickfix_window*
+grep_options.quickfix_window: ~
+    Shows the quickfix window after the search done.
+
+                                      *searchbox.grep_options.quickfix_format*
+grep_options.quickfix_format: ~
+  Is the pattern that will be used to parse the output of the program. See
+  |errorformat| for more details.
 
 ==============================================================================
 Custom keymaps                                      *searchbox-custom-keymaps*
