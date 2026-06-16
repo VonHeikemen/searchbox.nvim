@@ -85,15 +85,9 @@ M.search = function(config, search_opts, handlers)
       state.show_matches = true
     end
   end
-
-  local title = utils.set_title(search_opts, config)
-  local popup_opts = config.popup
-
-  if title ~= '' then
-    popup_opts = utils.merge(config.popup, {border = {text = {top = title}}})
-  end
-
+  
   local input = nil
+  local popup_opts = utils.modify_popup(search_opts, config)
 
   if search_opts.visual_mode and state.range.start[1] == 0 then
     local msg = '[searchbox] Could not find any text selected.'

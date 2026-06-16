@@ -34,6 +34,32 @@ M.merge = function(defaults, override)
   )
 end
 
+M.modify_popup = function(search_opts, config)
+  local popup_opts = {position = {}}
+  if search_opts.position_x then
+    popup_opts.position.col = search_opts.position_x
+  end
+
+  if search_opts.position_y then
+    popup_opts.position.row = search_opts.position_y
+  end
+
+  if type(search_opts.position_relative) == 'string' then
+    popup_opts.relative = search_opts.position_relative
+  end
+
+  if type(search_opts.window_width) == 'string' then
+    popup_opts.size = {width = search_opts.window_width}
+  end
+
+  local title = M.set_title(search_opts, config)
+  if title ~= '' then
+    popup_opts.border = {text = {top = title}}
+  end
+
+  return vim.tbl_deep_extend('force', config.popup, popup_opts)
+end
+
 M.create_map = function(input, force)
   return function(lhs, rhs)
     if type(rhs) == 'string' then

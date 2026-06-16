@@ -113,11 +113,15 @@ You can tweak the behaviour of the search if you pass any of these properties:
 
 * `reverse`: Look for matches above the cursor.
 * `exact`: Look for an exact match.
-* `title`: Set title for the popup window.
-* `prompt`: Set input prompt.
 * `default_value`: Set initial value for the input.
 * `visual_mode`: Search only in the recently selected text.
 * `show_matches`: If set to `true` it'll show number of matches in the input. If set to a string the pattern `{total}` will be replaced with the number of matches. If the pattern `{match}` is found it'll be replaced with the index of match under the cursor. You can set for example, `show_matches='[M:{match} T:{total}]'`. The default format of the message is `[{match}/{total}]`.
+* `title`: Set title for the popup window.
+* `prompt`: Set input prompt.
+* `position_relative`: Set the position of the popup window relative to the editor or the current window. Possible values: editor, win.
+* `position_x`: Refers to the column where the popup window will be placed. It sets the `popup.col` option in nui.input.
+* `position_y`: Refers to the row where the popup window will be placed. It sets the `popup.row` option in nui.input.
+* `window_width`: Width of the popup window.
 * `modifier`: Apply a "search modifier" at the beginning of the search pattern. It won't be visible in the search input. Possible values:
   - `ignore-case`: Make the search case insensitive. Applies the pattern \c.
   - `case-sensitive`: Make the search case sensitive. Applies the pattern \C.
@@ -365,7 +369,7 @@ require('searchbox').setup({
 
   - `executable` is the external program that will execute the search.
   - `flags` can be string or list of strings, it will be provided to the program as extra arguments before the search term.
-  - `show_progress` display the number of matches found during search. It can have three possible values: popup, echo or disabled. 
+  - `show_progress` display the number of matches found during search. It can have three possible values: popup, echo or disabled.
   - `quickfix_window` shows the quickfix window after the search done.
   - `quickfix_format` is the pattern that will be used to parse the output of the program. See [errorformat](https://neovim.io/doc/user/quickfix/#errorformat) for more details.
 

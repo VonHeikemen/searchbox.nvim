@@ -701,9 +701,12 @@ M.grep = {
 
     local progress_popup = {
       relative = popup_opts.relative,
-      position = popup_opts.position,
       border = popup_opts.border,
       win_options = popup_opts.win_options,
+      position = {
+        row = '5%',
+        col = '95%'
+      },
       size = {
         width = 30,
         height = 1

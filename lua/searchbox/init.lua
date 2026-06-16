@@ -9,6 +9,10 @@ local search_defaults = {
   visual_mode = false,
   range = {-1, -1},
   show_matches = false,
+  position_relative = false,
+  position_x = false,
+  position_y = false,
+  window_width = false
 }
 
 local defaults = {
@@ -60,7 +64,11 @@ local merge_config = function(opts)
       modifier = u.modifier,
       clear_matches = u.clear_matches,
       confirm = u.confirm,
-      show_matches = u.show_matches
+      show_matches = u.show_matches,
+      position_relative = u.position_relative,
+      position_x = u.position_x,
+      position_y = u.position_y,
+      window_width = u.window_width
     },
     opts
   )

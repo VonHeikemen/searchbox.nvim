@@ -91,12 +91,6 @@ reverse: ~
 exact: ~
     Look for an exact match.
 
-title: ~
-    Set title for the popup window.
-
-prompt: ~
-    Set input prompt.
-
 default_value: ~
     Set initial value for the input.
 
@@ -110,6 +104,27 @@ show_matches: ~
     index of match under the cursor. The default format of the message
     is `[{match}/{total}]`. But you can set it to something like this:
     `show_matches='[M:{match} T:{total}]'`. 
+
+title: ~
+    Set title for the popup window.
+
+prompt: ~
+    Set input prompt.
+
+position_relative: ~
+    Set the position of the popup window relative to the editor or the current
+    window. Possible values: editor, win.
+
+position_x: ~
+    Refers to the column where the popup window will be placed. It sets the
+    `popup.col` option in nui.input.
+
+position_y: ~
+    Refers to the row where the popup window will be placed. It sets the
+    `popup.row` option in nui.input.
+
+window_width: ~
+    Width of the popup window.
 
 modifier: ~
     Apply a "search modifier" at the beginning of the search pattern. It won't

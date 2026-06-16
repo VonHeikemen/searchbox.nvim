@@ -45,7 +45,11 @@ local to_opts = {
   prompt = str,
   confirm = str,
   modifier = str,
-  show_matches = bool_or_str
+  show_matches = bool_or_str,
+  position_relative = str,
+  position_x = str,
+  position_y = str,
+  window_width = str
 }
 
 local parse_options = function(args)
