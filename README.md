@@ -468,6 +468,20 @@ In case it needs to be said, if your search pattern does not begin with a `-`, e
 
 If the search is taking too long and want to cancel it, use the command `:SearchBoxGrepKill`.
 
+One more thing. If you like the idea of an asynchronous grep but don't care about the floating input, you can use the function `run_grep` in the lua api. You can make your own `:Grep` command.
+
+```lua
+vim.api.nvim_create_user_command('Grep', function(input)
+  require('searchbox').run_grep(input.args)
+end, {nargs = 1})
+```
+
+Or if you prefer vimscript.
+
+```vim
+command! -nargs=1 Grep lua require('searchbox').run_grep(<q-args>)
+```
+
 ## Caveats
 
 It's very possible that I can't simulate every feature of the built-in search (`/` and  `?`).

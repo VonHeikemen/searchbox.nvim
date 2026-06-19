@@ -273,5 +273,36 @@ M.grep = function(config)
   input.search(opts, search_opts, search_type.grep)
 end
 
+M.run_grep = function(value)
+  if not user_opts then
+    M.setup({})
+  end
+
+  if type(value) ~= 'string' then
+    local msg = '[SearchBox grep] value must be a string'
+    vim.notify(msg, vim.log.levels.WARN)
+    return
+  end
+
+  if value == '' then
+    local msg = '[SearchBox grep] value must be a non-empty string'
+    vim.notify(msg, vim.log.levels.WARN)
+    return
+  end
+
+  local search_type = require('searchbox.search-types')
+
+  local opts = {grep = user_opts.grep_options}
+  local state = {}
+
+  if type(vim.tbl_get(user_opts, 'hooks', 'on_done')) == 'function' then
+    state.on_done = user_opts.hooks.on_done
+  else
+    state.on_done = function() end
+  end
+
+  search_type.grep.on_submit(value, opts, state, user_opts.popup)
+end
+
 return M
 
