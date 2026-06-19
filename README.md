@@ -143,6 +143,10 @@ For *replace*:
 
 * `confirm`: Ask the user to choose an action on each match. There are three possible values: `off`, `native` and `menu`. `off` disables the feature. `native` uses neovim's built-in confirm method. `menu` displays a list of possible actions below the match. Is worth mentioning `menu` will only show up if neovim's window is big enough, confirm type will fallback to "native" if it isn't.
 
+For *grep*
+
+* `modifier`: If the first argument is a `-` then the value will be added as flags to the grep program. Arguments will be separated by a space.
+
 ### Command Api
 
 When using the command api the arguments are a space separated list of key/value pairs. The syntax for the arguments is this: `key=value`.
@@ -443,7 +447,9 @@ In this case we are adding two flags. And is worth noting whitespace is used as 
 You can also provide flags in the search input itself. If the first character of the search pattern is `-` then it will be split in half. Let's say you type this on the input.
 
 ```txt
---include=*.lua -- some thing
+╭ Grep ──────────────────────────╮
+│ --include=*.lua -- some thing  │
+╰────────────────────────────────╯
 ```
 
 This will split in two parts using ` -- ` as a separator. Anything after the separator will be the search pattern. Here `some thing` will become the "search query." Notice you can use whitespace here with no problem. Anything that is before `--` will be treated as flags, so is exactly like the `modifier` argument.
@@ -451,7 +457,9 @@ This will split in two parts using ` -- ` as a separator. Anything after the sep
 If your search pattern starts with `-` but you don't use `--` then everything is a flag. Say we type this:
 
 ```txt
--d some thing
+╭ Grep ──────────────────────────╮
+│ -d some thing                  │
+╰────────────────────────────────╯
 ```
 
 Here what happens will depend on the grep program. Because remember, key/value flags can have two forms: `--key value` and `--key=value`. So, if `-d` happens to be a key/value flag then `some` will become its value, which may or may not be what you want. And this is why we have `--` as a separator, so the plugin can distinguish between flags and search query.
