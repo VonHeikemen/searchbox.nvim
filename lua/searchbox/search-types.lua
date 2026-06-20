@@ -651,6 +651,7 @@ M.grep = {
     local matches = 0
     local output = {}
     local on_done = function(result)
+      local notify = type(popup) == 'table'
       pcall(function()
         if popup == nil then
           return
@@ -694,6 +695,19 @@ M.grep = {
 
       if grep.quickfix_window then
         vim.cmd('copen')
+      else
+        local msg = '[SearchBox grep] %s'
+        if #lines == 1 then
+          msg = msg:format('%s match found')
+        else
+          msg = msg:format('%s results found')
+        end
+
+        if notify then
+          vim.notify(msg:format(#lines))
+        else
+          vim.api.nvim_echo({{msg:format(#lines), 'MoreMsg'}}, true, {})
+        end
       end
 
       state.on_done(query, 'grep')
